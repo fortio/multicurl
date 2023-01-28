@@ -47,9 +47,9 @@ stderr 'I Resolved ip localhost:9099 to port 9099 and 2 addresses \[::1 127.0.0.
 
 # resolve failure
 ! multicurl doesntexist.fortio.org
-stderr 'E Unable to lookup "doesnexist.fortio.org": lookup doesnexist.fortio.org: no such host'
+stderr 'E Unable to lookup "doesntexist.fortio.org": lookup doesntexist.fortio.org: no such host'
 
 # redirect
 multicurl -4 http://demo.fortio.org/x
-stderr 'Total 0 errors (2 warnings)'
+stderr 'Total 0 errors \(2 warnings\)'
 stderr 'Status 303 '
