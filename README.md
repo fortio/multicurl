@@ -5,8 +5,16 @@
 Fetches a URL from all the IPs of a given host
 
 ## Installation
-
+```
 go install github.com/fortio/multicurl@latest
+```
+
+Or the [binary releases](https://github.com/fortio/multicurl/releases)
+
+Or using the docker image
+```
+docker run fortio/multicurl http://debug.fortio.org/test
+```
 
 ## Usage
 
