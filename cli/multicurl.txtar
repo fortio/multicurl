@@ -7,7 +7,7 @@ stderr 'Need 1 argument'
 
 # -version
 multicurl -version
-stdout 'path	github.com/fortio/multicurl'
+stdout 'dev  go'
 ! stderr .
 
 # -foo (bad flag)
