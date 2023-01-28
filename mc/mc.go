@@ -58,6 +58,9 @@ func MultiCurl(method, urlString, resolveType string) int {
 	tr.DisableKeepAlives = true
 	cli := http.Client{
 		Transport: tr,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
 	}
 	for i, addr := range addrs {
 		log.Infof("%d: Fetching from %s", i, addr)
