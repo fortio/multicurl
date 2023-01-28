@@ -2,7 +2,7 @@
 
 # multicurl
 
-Fetches a page from all the IPs of a given host
+Fetches a URL from all the IPs of a given host
 
 ## Installation
 
@@ -11,5 +11,7 @@ go install github.com/fortio/multicurl@latest
 ## Usage
 
 multicurl https://debug.fortio.org/test
+
+Use `-4` for ipv4 only, `-6` for ipv6 only, otherwise it'll try all of them.
 
 See also [multicurl.txtar](multicurl.txtar) for examples (tests)
