@@ -15,6 +15,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -24,7 +25,6 @@ import (
 	"fortio.org/fortio/log"
 	"fortio.org/fortio/version"
 	"github.com/fortio/multicurl/mc"
-	"golang.org/x/net/context"
 )
 
 var (
