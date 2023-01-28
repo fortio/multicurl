@@ -53,3 +53,7 @@ stderr 'E Unable to lookup "doesntexist.fortio.org": lookup doesntexist.fortio.o
 multicurl -4 http://demo.fortio.org/x
 stderr 'Total 0 errors \(2 warnings\)'
 stderr 'Status 303 '
+
+# bad port
+! multicurl http://foo:90000/
+stderr 'E Unable to resolve port "90000": address 90000: invalid port'
