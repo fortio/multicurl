@@ -23,24 +23,24 @@ stderr 'F Bad url "http://a bad url" : parse "http://a bad url": invalid charact
 ! multicurl ''
 stderr 'F Unexpected empty url'
 
-# positive test, scheme added
-multicurl debug.fortio.org
-stderr 'resolver ip,'
+# positive test, scheme added (have to use -4 for positive tests because https://github.com/actions/runner-images/issues/668)
+multicurl -4 debug.fortio.org
+stderr 'resolver ip4,'
 stderr 'Assuming http:// on missing scheme for "debug.fortio.org"'
 
 # positive test, https
-multicurl https://debug.fortio.org/foo/bar
-stderr 'resolver ip,'
-stderr 'I Resolving ip host debug.fortio.org port https'
-
-# -4
-multicurl -4 debug.fortio.org
+multicurl -4 https://debug.fortio.org/foo/bar
 stderr 'resolver ip4,'
+stderr 'I Resolving ip4 host debug.fortio.org port https'
 
-# -6
-multicurl -6 debug.fortio.org
+# -6 error
+! multicurl -6 localhost:9099
 stderr 'resolver ip6,'
 
 # both
-multicurl -4 -6 debug.fortio.org
+! multicurl -4 -6 localhost:9099
 stderr 'resolver ip,'
+
+# default
+! multicurl localhost:9099
+stderr 'I Resolved ip localhost:9099 to port 9099 and 2 addresses \[::1 127.0.0.1]'
