@@ -19,10 +19,12 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"fortio.org/fortio/log"
 	"fortio.org/fortio/version"
 	"github.com/fortio/multicurl/mc"
+	"golang.org/x/net/context"
 )
 
 var (
@@ -52,6 +54,8 @@ func Main() int {
 	ipv4 := flag.Bool("4", false, "Only IPv4")
 	ipv6 := flag.Bool("6", false, "Only IPv6")
 	method := flag.String("method", http.MethodGet, "HTTP method")
+	totalTimeout := flag.Duration("total-timeout", 30*time.Second, "HTTP method")
+	requestTimeout := flag.Duration("request-timeout", 3*time.Second, "HTTP method")
 	flag.CommandLine.Usage = func() { usage("") }
 	log.SetFlagDefaultsForClientTools()
 	sV, longV, fullV := version.FromBuildInfo()
@@ -76,6 +80,8 @@ func Main() int {
 		return 1
 	}
 	url := flag.Args()[0]
-	log.Infof("Fortio multicurl %s using resolver %s %s %s", longV, resolveType, *method, url)
-	return mc.MultiCurl(*method, url, resolveType)
+	log.Infof("Fortio multicurl %s, using resolver %s, %s %s", longV, resolveType, *method, url)
+	ctx, cncl := context.WithTimeout(context.Background(), *totalTimeout)
+	defer cncl()
+	return mc.MultiCurl(ctx, *requestTimeout, *method, url, resolveType)
 }
