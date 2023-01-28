@@ -28,6 +28,7 @@ Relevant flags (some extra are from fortio library but not used/relevant)
 flags:
   -4	Only IPv4
   -6	Only IPv6
+  -s	Quiet mode (sets log level to warning quietly)
   -loglevel value
     	loglevel, one of [Debug Verbose Info Warning Error Critical Fatal] (default Info)
   -method string
