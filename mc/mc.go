@@ -90,7 +90,7 @@ func MultiCurl(ctx context.Context, timeout time.Duration, method, urlString, re
 			level = log.Warning
 			numWarnings++
 		}
-		log.Logf(level, "%d: Status %d (%s) from %s", i, resp.StatusCode, resp.Status, addr)
+		log.Logf(level, "%d: Status %d %q from %s", i, resp.StatusCode, resp.Status, addr)
 		data, err := io.ReadAll(resp.Body)
 		_ = resp.Body.Close()
 		if err != nil {
@@ -100,6 +100,9 @@ func MultiCurl(ctx context.Context, timeout time.Duration, method, urlString, re
 		os.Stdout.Write(data)
 	}
 	level := log.Info
+	if numWarnings > 0 {
+		level = log.Warning
+	}
 	if numErrors > 0 {
 		level = log.Error
 	}

@@ -52,11 +52,16 @@ func Main() int {
 	method := flag.String("method", http.MethodGet, "HTTP method")
 	totalTimeout := flag.Duration("total-timeout", 30*time.Second, "HTTP method")
 	requestTimeout := flag.Duration("request-timeout", 3*time.Second, "HTTP method")
+	quietFlag := flag.Bool("s", false, "Quiet mode (sets log level to warning quietly)")
 	flag.CommandLine.Usage = func() { usage("") }
 	log.SetFlagDefaultsForClientTools()
 	sV, longV, fullV := version.FromBuildInfo()
 	shortV = sV
 	flag.Parse()
+	if *quietFlag {
+		log.SetLogLevelQuiet(log.Warning)
+	}
+
 	if *fullVersion {
 		fmt.Print(fullV)
 		return 0

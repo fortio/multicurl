@@ -43,7 +43,7 @@ stderr 'resolver ip,'
 
 # default
 ! multicurl localhost:9099
-stderr 'I Resolved ip localhost:9099 to port 9099 and 2 addresses \[::1 127.0.0.1]'
+stderr 'I Resolved ip localhost:9099 to port 9099 and 2 addresses \[::1 127.0.0.1\]'
 
 # resolve failure
 ! multicurl doesntexist.fortio.org
@@ -57,3 +57,8 @@ stderr 'Status 303 '
 # bad port
 ! multicurl http://foo:90000/
 stderr 'E Unable to resolve port "90000": address 90000: invalid port'
+
+# -s mode
+multicurl -4 -s http://demo.fortio.org/x
+! stderr 'I Resolving'
+stderr 'W Total 0 errors \(2 warnings\)'
