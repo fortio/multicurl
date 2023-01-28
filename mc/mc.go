@@ -23,12 +23,15 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"fortio.org/fortio/fnet"
 	"fortio.org/fortio/log"
 )
 
-func MultiCurl(method, urlString, resolveType string) int {
+// MultiCurl is the main function of the multicurl tool. timeout is per request/ip.
+func MultiCurl(ctx context.Context, timeout time.Duration, method, urlString, resolveType string) int {
+	numErrors := 0
 	if len(urlString) == 0 {
 		return log.FErrf("Unexpected empty url")
 	}
@@ -44,13 +47,17 @@ func MultiCurl(method, urlString, resolveType string) int {
 		port = url.Scheme // ie http / https which turns into 80 / 443 later
 		log.LogVf("No port specified, using %s", port)
 	}
-	log.Infof("Resolving using %s Host %s port %s", resolveType, host, port)
-	portNum, addrs, err := ResolveAll(host, port, resolveType)
+	log.Infof("Resolving %s host %s port %s", resolveType, host, port)
+	portNum, addrs, err := ResolveAll(ctx, host, port, resolveType)
 	if err != nil {
 		return 1 // already logged
 	}
-	log.Infof("Resolved %s:%s to %d %v", host, port, portNum, addrs)
-	req, err := http.NewRequestWithContext(context.Background(), method, urlString, nil)
+	plural := ""
+	if len(addrs) != 1 {
+		plural = "es"
+	}
+	log.Infof("Resolved %s %s:%s to port %d and %d address%s %v", resolveType, host, port, portNum, len(addrs), plural, addrs)
+	req, err := http.NewRequestWithContext(ctx, method, urlString, nil)
 	if err != nil {
 		return log.FErrf("Error creating request: %v", err)
 	}
@@ -58,33 +65,54 @@ func MultiCurl(method, urlString, resolveType string) int {
 	tr.DisableKeepAlives = true
 	cli := http.Client{
 		Transport: tr,
+		Timeout:   timeout,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
 	}
+	numWarnings := 0
 	for i, addr := range addrs {
-		log.Infof("%d: Fetching from %s", i, addr)
+		log.Infof("%d: Using %s", i, addr)
 		dest := fnet.HostPortAddr{IP: addr, Port: portNum}
 		aStr := dest.String()
 		tr.DialContext = func(ctx context.Context, network, oAddr string) (net.Conn, error) {
-			log.Infof("DialContext %s %s -> %s", network, oAddr, aStr)
+			log.Infof("%d: DialContext %s %s -> %s", i, network, oAddr, aStr)
 			d := net.Dialer{}
 			return d.DialContext(ctx, "tcp", aStr)
 		}
 		resp, err := cli.Do(req)
 		if err != nil {
-			log.Errf("Error fetching %s: %v", addr, err)
+			log.Errf("%d: Error fetching %s: %v", i, addr, err)
+			numErrors++
 			continue
 		}
-		log.Infof("%d: Got %d from %s", i, resp.StatusCode, addr)
+		level := log.Info
+		if resp.StatusCode != http.StatusOK {
+			level = log.Warning
+			numWarnings++
+		}
+		log.Logf(level, "%d: Status %d (%s) from %s", i, resp.StatusCode, resp.Status, addr)
 		data, err := io.ReadAll(resp.Body)
 		_ = resp.Body.Close()
 		if err != nil {
-			log.Errf("Error reading body from %s: %v", addr, err)
+			log.Errf("%d: Error reading body from %s: %v", i, addr, err)
+			numErrors++
 		}
 		os.Stdout.Write(data)
 	}
-	return 0
+	level := log.Info
+	if numErrors > 0 {
+		level = log.Error
+	}
+	log.Logf(level, "Total %d %s (%d %s)", numErrors, Plural(numErrors, "error"), numWarnings, Plural(numWarnings, "warning"))
+	return numErrors
+}
+
+func Plural(i int, noun string) string {
+	if i == 1 {
+		return noun
+	}
+	return noun + "s"
 }
 
 func URLAddScheme(url string) string {
@@ -100,7 +128,7 @@ func URLAddScheme(url string) string {
 	return "http://" + url
 }
 
-func ResolveAll(host, portString, resolveType string) (int, []net.IP, error) {
+func ResolveAll(ctx context.Context, host, portString, resolveType string) (int, []net.IP, error) {
 	if strings.HasPrefix(host, "[") && strings.HasSuffix(host, "]") {
 		log.Debugf("host %s looks like an IPv6, stripping []", host)
 		host = host[1 : len(host)-1]
@@ -115,7 +143,7 @@ func ResolveAll(host, portString, resolveType string) (int, []net.IP, error) {
 		log.LogVf("Resolved %s:%d already an IP as addr", host, port)
 		return port, []net.IP{isAddr}, nil
 	}
-	addrs, err := net.DefaultResolver.LookupIP(context.Background(), resolveType, host)
+	addrs, err := net.DefaultResolver.LookupIP(ctx, resolveType, host)
 	if err != nil {
 		log.Errf("Unable to lookup %q: %v", host, err)
 	}
