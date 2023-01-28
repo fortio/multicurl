@@ -1,0 +1,46 @@
+# testscript framework tests for multicurl command line
+
+# Basic usage test
+! multicurl
+! stdout .
+stderr 'Need 1 argument'
+
+# -version
+multicurl -version
+stdout 'path	github.com/fortio/multicurl'
+! stderr .
+
+# -foo (bad flag)
+! multicurl -foo
+! stdout .
+stderr 'flag provided but not defined: -foo'
+
+# bad url
+! multicurl 'http://a bad url'
+stderr 'F Bad url "http://a bad url" : parse "http://a bad url": invalid character " " in host name'
+
+# empty url
+! multicurl ''
+stderr 'F Unexpected empty url'
+
+# positive test, scheme added
+multicurl debug.fortio.org
+stderr 'resolver ip '
+stderr 'Assuming http:// on missing scheme for "debug.fortio.org"'
+
+# positive test, https
+multicurl https://debug.fortio.org/foo/bar
+stderr 'resolver ip '
+stderr 'I Resolving using ip Host debug.fortio.org port https'
+
+# -4
+multicurl -4 debug.fortio.org
+stderr 'resolver ip4 '
+
+# -6
+multicurl -6 debug.fortio.org
+stderr 'resolver ip6 '
+
+# both
+multicurl -4 -6 debug.fortio.org
+stderr 'resolver ip '
