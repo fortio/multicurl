@@ -22,10 +22,10 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
-	"fortio.org/fortio/fnet"
 	"fortio.org/fortio/log"
 )
 
@@ -73,8 +73,7 @@ func MultiCurl(ctx context.Context, timeout time.Duration, method, urlString, re
 	numWarnings := 0
 	for i, addr := range addrs {
 		log.Infof("%d: Using %s", i, addr)
-		dest := fnet.HostPortAddr{IP: addr, Port: portNum}
-		aStr := dest.String()
+		aStr := IPPortString(addr, portNum)
 		tr.DialContext = func(ctx context.Context, network, oAddr string) (net.Conn, error) {
 			log.Infof("%d: DialContext %s %s -> %s", i, network, oAddr, aStr)
 			d := net.Dialer{}
@@ -148,4 +147,12 @@ func ResolveAll(ctx context.Context, host, portString, resolveType string) (int,
 		log.Errf("Unable to lookup %q: %v", host, err)
 	}
 	return port, addrs, err
+}
+
+func IPPortString(ip net.IP, port int) string {
+	ipstr := ip.String()
+	if strings.Contains(ipstr, ":") {
+		ipstr = "[" + ipstr + "]"
+	}
+	return ipstr + ":" + strconv.Itoa(port)
 }
