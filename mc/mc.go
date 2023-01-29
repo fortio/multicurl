@@ -17,11 +17,13 @@ package mc
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -29,13 +31,22 @@ import (
 	"fortio.org/fortio/log"
 )
 
+// Config object for MultiCurl to avoid passing too many parameters.
+type Config struct {
+	URL            string
+	ResolveType    string // `ip4`, `ip6`, or `ip` for both.
+	Method         string
+	RequestTimeout time.Duration
+	IncludeHeaders bool
+}
+
 // MultiCurl is the main function of the multicurl tool. timeout is per request/ip.
-func MultiCurl(ctx context.Context, timeout time.Duration, method, urlString, resolveType string) int {
+func MultiCurl(ctx context.Context, cfg *Config) int {
 	numErrors := 0
-	if len(urlString) == 0 {
+	if len(cfg.URL) == 0 {
 		return log.FErrf("Unexpected empty url")
 	}
-	urlString = URLAddScheme(urlString)
+	urlString := URLAddScheme(cfg.URL)
 	// Parse the url, extract components.
 	url, err := url.Parse(urlString)
 	if err != nil {
@@ -47,8 +58,8 @@ func MultiCurl(ctx context.Context, timeout time.Duration, method, urlString, re
 		port = url.Scheme // ie http / https which turns into 80 / 443 later
 		log.LogVf("No port specified, using %s", port)
 	}
-	log.Infof("Resolving %s host %s port %s", resolveType, host, port)
-	portNum, addrs, err := ResolveAll(ctx, host, port, resolveType)
+	log.Infof("Resolving %s host %s port %s", cfg.ResolveType, host, port)
+	portNum, addrs, err := ResolveAll(ctx, host, port, cfg.ResolveType)
 	if err != nil {
 		return 1 // already logged
 	}
@@ -56,8 +67,8 @@ func MultiCurl(ctx context.Context, timeout time.Duration, method, urlString, re
 	if len(addrs) != 1 {
 		plural = "es"
 	}
-	log.Infof("Resolved %s %s:%s to port %d and %d address%s %v", resolveType, host, port, portNum, len(addrs), plural, addrs)
-	req, err := http.NewRequestWithContext(ctx, method, urlString, nil)
+	log.Infof("Resolved %s %s:%s to port %d and %d address%s %v", cfg.ResolveType, host, port, portNum, len(addrs), plural, addrs)
+	req, err := http.NewRequestWithContext(ctx, cfg.Method, urlString, nil)
 	if err != nil {
 		return log.FErrf("Error creating request: %v", err)
 	}
@@ -65,7 +76,7 @@ func MultiCurl(ctx context.Context, timeout time.Duration, method, urlString, re
 	tr.DisableKeepAlives = true
 	cli := http.Client{
 		Transport: tr,
-		Timeout:   timeout,
+		Timeout:   cfg.RequestTimeout,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
@@ -91,6 +102,9 @@ func MultiCurl(ctx context.Context, timeout time.Duration, method, urlString, re
 			numWarnings++
 		}
 		log.Logf(level, "%d: Status %d %q from %s", i, resp.StatusCode, resp.Status, addr)
+		if cfg.IncludeHeaders {
+			DumpResponseDetails(os.Stdout, resp)
+		}
 		data, err := io.ReadAll(resp.Body)
 		_ = resp.Body.Close()
 		if err != nil {
@@ -158,4 +172,21 @@ func IPPortString(ip net.IP, port int) string {
 		ipstr = "[" + ipstr + "]"
 	}
 	return ipstr + ":" + strconv.Itoa(port)
+}
+
+// DumpResponseDetails sort of reconstitutes the server's response (but not really as go
+// processes it and the raw response isn't available - use fortio curl fast client for exact bytes).
+func DumpResponseDetails(w io.Writer, r *http.Response) {
+	fmt.Fprintf(w, "%s %s\n", r.Proto, r.Status)
+	keys := make([]string, 0, len(r.Header))
+	for k := range r.Header {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, name := range keys {
+		for _, h := range r.Header[name] {
+			fmt.Fprintf(w, "%s: %s\n", name, h)
+		}
+	}
+	fmt.Fprintln(w)
 }

@@ -62,3 +62,8 @@ stderr 'E Unable to resolve port "90000": address 90000: invalid port'
 multicurl -4 -s http://demo.fortio.org/x
 ! stderr 'I Resolving'
 stderr 'W Total 0 errors \(2 warnings\)'
+
+# -i mode (assumes demo.fortio.org is fronted by cloudflare)
+multicurl -4 -i http://demo.fortio.org/x
+stdout 'HTTP/1.1 303 See Other'
+stdout 'Server: cloudflare'
