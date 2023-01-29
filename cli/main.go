@@ -27,9 +27,23 @@ import (
 	"github.com/fortio/multicurl/mc"
 )
 
+// -- Support for multiple instances of -H flag on cmd line.
+type headersFlagList struct{}
+
+func (f *headersFlagList) String() string {
+	return ""
+}
+
+func (f *headersFlagList) Set(value string) error {
+	return config.AddAndValidateExtraHeader(value)
+}
+
+// -- end of functions for -H support
+
 var (
 	fullVersion = flag.Bool("version", false, "Show full version info and exit.")
 	shortV      string
+	config      = mc.NewConfig()
 )
 
 func usage(msg string, args ...any) {
@@ -54,6 +68,9 @@ func Main() int {
 	totalTimeout := flag.Duration("total-timeout", 30*time.Second, "HTTP method")
 	requestTimeout := flag.Duration("request-timeout", 3*time.Second, "HTTP method")
 	quietFlag := flag.Bool("s", false, "Quiet mode (sets log level to warning quietly)")
+	var headersFlags headersFlagList
+	flag.Var(&headersFlags, "H",
+		"Additional http header(s). Multiple `key:value` pairs can be passed using multiple -H.")
 	flag.CommandLine.Usage = func() { usage("") }
 	log.SetFlagDefaultsForClientTools()
 	sV, longV, fullV := version.FromBuildInfo()
@@ -85,11 +102,11 @@ func Main() int {
 	log.Infof("Fortio multicurl %s, using resolver %s, %s %s", longV, resolveType, *method, url)
 	ctx, cncl := context.WithTimeout(context.Background(), *totalTimeout)
 	defer cncl()
-	return mc.MultiCurl(ctx, &mc.Config{
-		RequestTimeout: *requestTimeout,
-		Method:         *method,
-		URL:            url,
-		ResolveType:    resolveType,
-		IncludeHeaders: *inclHeaders,
-	})
+	config.RequestTimeout = *requestTimeout
+	config.Method = *method
+	config.URL = url
+	config.ResolveType = resolveType
+	config.IncludeHeaders = *inclHeaders
+	log.Debugf("Config: %+v", config)
+	return mc.MultiCurl(ctx, config)
 }

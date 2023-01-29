@@ -27,6 +27,7 @@ stderr 'F Unexpected empty url'
 multicurl -4 -loglevel verbose debug.fortio.org
 stderr 'resolver ip4,'
 stderr 'Assuming http:// on missing scheme for "debug.fortio.org"'
+stdout 'User-Agent: fortio.org/multicurl-'
 
 # positive test, https
 multicurl -loglevel verbose -4 https://debug.fortio.org/foo/bar
@@ -67,3 +68,13 @@ stderr 'W Total 0 errors \(2 warnings\)'
 multicurl -4 -i http://demo.fortio.org/x
 stdout 'HTTP/1.1 303 See Other'
 stdout 'Server: cloudflare'
+
+# -H clear User-Agent
+multicurl -4 -loglevel verbose -H User-Agent: -H FOO-heaDER:bAr debug.fortio.org
+! stdout User-Agent
+stdout 'Foo-Header: bAr'
+
+# Host header
+multicurl -4 -loglevel verbose -H Host:debug.fortio.org demo.fortio.org
+stdout 'Debug server on'
+stderr 'V Will be setting special Host header to debug.fortio.org'

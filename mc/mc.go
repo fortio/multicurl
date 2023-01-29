@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"fortio.org/fortio/log"
+	"fortio.org/fortio/version"
 )
 
 // Config object for MultiCurl to avoid passing too many parameters.
@@ -40,10 +41,22 @@ type Config struct {
 	Method         string
 	RequestTimeout time.Duration
 	IncludeHeaders bool
+	Headers        http.Header
+	HostOverride   string
+}
+
+var (
+	libShortVersion string
+	libLongVersion  string
+)
+
+func init() {
+	libShortVersion, libLongVersion, _ = version.FromBuildInfoPath("github.com/fortio/multicurl")
 }
 
 // MultiCurl is the main function of the multicurl tool. timeout is per request/ip.
 func MultiCurl(ctx context.Context, cfg *Config) int {
+	log.Infof("Fortio multicurl %s, using resolver %s, %s %s", libLongVersion, cfg.ResolveType, cfg.Method, cfg.URL)
 	numErrors := 0
 	if len(cfg.URL) == 0 {
 		return log.FErrf("Unexpected empty url")
@@ -71,6 +84,8 @@ func MultiCurl(ctx context.Context, cfg *Config) int {
 	}
 	log.Infof("Resolved %s %s:%s to port %d and %d address%s %v", cfg.ResolveType, host, port, portNum, len(addrs), plural, addrs)
 	req, err := http.NewRequestWithContext(ctx, cfg.Method, urlString, nil)
+	req.Header = cfg.Headers
+	req.Host = cfg.HostOverride
 	if err != nil {
 		return log.FErrf("Error creating request: %v", err)
 	}
@@ -192,4 +207,39 @@ func DumpResponseDetails(w io.Writer, r *http.Response) {
 		}
 	}
 	fmt.Fprintln(w)
+}
+
+// AddAndValidateExtraHeader collects extra headers (see cli/main.go for example).
+// Inspired/borrowed from fortio/fhttp.
+func (cfg *Config) AddAndValidateExtraHeader(hdr string) error {
+	s := strings.SplitN(hdr, ":", 2)
+	if len(s) != 2 {
+		return fmt.Errorf("invalid extra header '%s', expecting Key: Value", hdr)
+	}
+	key := strings.TrimSpace(s[0])
+	// No TrimSpace for the value, so we can set empty "" vs just whitespace " " which
+	// will get trimmed later but treated differently: not emitted vs emitted empty for User-Agent.
+	value := s[1]
+	switch strings.ToLower(key) {
+	case "host":
+		log.LogVf("Will be setting special Host header to %s", value)
+		cfg.HostOverride = strings.TrimSpace(value) // This one needs to be trimmed
+	case "user-agent":
+		// To remove you must set to empty string as otherwise std go client adds its own
+		log.LogVf("User-Agent being Set to %q", value)
+		cfg.Headers.Set(key, value)
+	default:
+		log.LogVf("Setting regular extra header %s: %s", key, value)
+		cfg.Headers.Add(key, value)
+		log.Debugf("headers now %+v", cfg.Headers)
+	}
+	return nil
+}
+
+func NewConfig() *Config {
+	cfg := Config{
+		Headers: make(http.Header, 1),
+	}
+	cfg.Headers.Set("User-Agent", "fortio.org/multicurl-"+libShortVersion)
+	return &cfg
 }
