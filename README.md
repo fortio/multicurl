@@ -31,6 +31,8 @@ flags:
   -6	Use only IPv6
   -i	Include response headers in output
   -s	Quiet mode (sets log level to warning quietly)
+  -H key:value
+    	Additional http header(s). Multiple key:value pairs can be passed using multiple -H.
   -loglevel value
     	loglevel, one of [Debug Verbose Info Warning Error Critical Fatal] (default Info)
   -method string
