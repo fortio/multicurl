@@ -5,14 +5,14 @@
 Fetches a URL from all the IPs of a given host
 
 ## Installation
-```
+```shell
 go install github.com/fortio/multicurl@latest
 ```
 
 Or the [binary releases](https://github.com/fortio/multicurl/releases)
 
 Or using the docker image
-```
+```shell
 docker run fortio/multicurl http://debug.fortio.org/test
 ```
 
@@ -24,7 +24,7 @@ Use `-4` for ipv4 only, `-6` for ipv6 only, otherwise it'll try all of them.
 
 Relevant flags (some extra are from fortio library but not used/relevant)
 
-```shell
+```
 flags:
 flags:
   -4	Use only IPv4
@@ -47,7 +47,7 @@ See also [multicurl.txtar](multicurl.txtar) for examples (tests)
 
 ### Example
 
-```Shell
+```
 $ multicurl -i https://debug.fortio.org
 17:35:52 I Fortio multicurl 1.1.0 h1:LUqSvzZCem9zhawlHnHVBS8ijTCvleQaQn8l7ibugvU= go1.19.5 arm64 darwin, using resolver ip, GET https://debug.fortio.org
 17:35:52 I Resolving ip host debug.fortio.org port https
