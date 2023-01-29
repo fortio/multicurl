@@ -82,3 +82,16 @@ stderr 'V Will be setting special Host header to debug.fortio.org'
 # bad -H
 ! multicurl -H foo debug.fortio.org
 stderr 'invalid value "foo" for flag -H: invalid extra header .foo., expecting Key: Value'
+
+# bad -o (missing pattern)
+! multicurl -o foo debug.fortio.org
+stderr 'F Output pattern must contain %$'
+
+# write to files (if debug.fortio.org IP for a1 changes this will need an update)
+multicurl -4 -o out.%.txt debug.fortio.org
+stderr 'I .: Writing to out\.[0-9]+\.[0-9]+\.[0-9]+\.[0-9]\.txt'
+grep 'Debug server on a1' out.18.222.136.83.txt
+
+# error case
+! multicurl -4 -i -o /doesnexist/debug.%.txt debug.fortio.org
+stderr 'F Error creating file /doesnexist/debug.+: open /doesnexist/debug.+: no such file or directory'
