@@ -64,7 +64,7 @@ func Main() int {
 	ipv4 := flag.Bool("4", false, "Use only IPv4")
 	ipv6 := flag.Bool("6", false, "Use only IPv6")
 	inclHeaders := flag.Bool("i", false, "Include response headers in output")
-	method := flag.String("method", http.MethodGet, "HTTP method")
+	method := flag.String("X", "", "HTTP method to use, default is GET unless -d is set which defaults to POST")
 	totalTimeout := flag.Duration("total-timeout", 30*time.Second, "HTTP method")
 	requestTimeout := flag.Duration("request-timeout", 3*time.Second, "HTTP method")
 	quietFlag := flag.Bool("s", false, "Quiet mode (sets log level to warning quietly)")
@@ -72,6 +72,7 @@ func Main() int {
 	flag.Var(&headersFlags, "H",
 		"Additional http header(s). Multiple `key:value` pairs can be passed using multiple -H.")
 	output := flag.String("o", "", `Output file name pattern, e.g "out-%.html" where % will be replaced by the ip, default is stdout`)
+	data := flag.String("d", "", "Payload to POST, use @filename to read from file")
 	flag.CommandLine.Usage = func() { usage("") }
 	log.SetFlagDefaultsForClientTools()
 	sV, _, fullV := version.FromBuildInfo()
@@ -107,6 +108,32 @@ func Main() int {
 	config.ResolveType = resolveType
 	config.IncludeHeaders = *inclHeaders
 	config.OutputPattern = *output
+	if *data != "" {
+		if config.Method == "" {
+			config.Method = http.MethodPost
+		}
+		config.Payload = payload(*data)
+		if config.Payload == nil {
+			return 1 // error already logged
+		}
+	}
+	if config.Method == "" {
+		config.Method = http.MethodGet
+	}
 	log.Debugf("Config: %+v", config)
 	return mc.MultiCurl(ctx, config)
+}
+
+func payload(dataStr string) []byte {
+	if dataStr[0] != '@' {
+		return []byte(dataStr)
+	}
+	fname := dataStr[1:]
+	data, err := os.ReadFile(fname)
+	if err != nil {
+		log.FErrf("Unable to read payload from file %q: %v", fname, err)
+		return nil
+	}
+	log.Infof("Read %d bytes from %q as payload", len(data), fname)
+	return data
 }
