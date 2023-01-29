@@ -18,6 +18,7 @@
 package mc
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"io"
@@ -43,6 +44,7 @@ type Config struct {
 	IncludeHeaders bool
 	Headers        http.Header
 	HostOverride   string
+	OutputPattern  string
 }
 
 var (
@@ -57,6 +59,9 @@ func init() {
 // MultiCurl is the main function of the multicurl tool. timeout is per request/ip.
 func MultiCurl(ctx context.Context, cfg *Config) int {
 	log.Infof("Fortio multicurl %s, using resolver %s, %s %s", libLongVersion, cfg.ResolveType, cfg.Method, cfg.URL)
+	if cfg.OutputPattern != "" && cfg.OutputPattern != "-" && !strings.Contains(cfg.OutputPattern, "%") {
+		return log.FErrf("Output pattern must contain %%")
+	}
 	numErrors := 0
 	if len(cfg.URL) == 0 {
 		return log.FErrf("Unexpected empty url")
@@ -99,9 +104,23 @@ func MultiCurl(ctx context.Context, cfg *Config) int {
 		},
 	}
 	numWarnings := 0
+	useStdout := (cfg.OutputPattern == "" || cfg.OutputPattern == "-")
 	for idx, addr := range addrs {
 		i := idx + 1 // humans count from 1
 		log.LogVf("%d: Using %s", i, addr)
+		var out *bufio.Writer
+		if useStdout {
+			out = bufio.NewWriter(os.Stdout)
+		} else {
+			fname := Filename(cfg, addr)
+			f, err := os.Create(fname)
+			if err != nil {
+				return log.FErrf("Error creating file %s: %v", fname, err)
+			}
+			defer f.Close()
+			out = bufio.NewWriter(f)
+			log.Infof("%d: Writing to %s", i, fname)
+		}
 		aStr := IPPortString(addr, portNum)
 		tr.DialContext = func(ctx context.Context, network, oAddr string) (net.Conn, error) {
 			log.LogVf("%d: DialContext %s %s -> %s", i, network, oAddr, aStr)
@@ -121,7 +140,7 @@ func MultiCurl(ctx context.Context, cfg *Config) int {
 		}
 		log.Logf(level, "%d: Status %d %q from %s", i, resp.StatusCode, resp.Status, addr)
 		if cfg.IncludeHeaders {
-			DumpResponseDetails(os.Stdout, resp)
+			DumpResponseDetails(out, resp)
 		}
 		data, err := io.ReadAll(resp.Body)
 		_ = resp.Body.Close()
@@ -129,7 +148,8 @@ func MultiCurl(ctx context.Context, cfg *Config) int {
 			log.Errf("%d: Error reading body from %s: %v", i, addr, err)
 			numErrors++
 		}
-		os.Stdout.Write(data)
+		_, _ = out.Write(data)
+		_ = out.Flush()
 	}
 	level := log.Info
 	if numWarnings > 0 {
@@ -242,4 +262,9 @@ func NewConfig() *Config {
 	}
 	cfg.Headers.Set("User-Agent", "fortio.org/multicurl-"+libShortVersion)
 	return &cfg
+}
+
+func Filename(cfg *Config, addr net.IP) string {
+	aStr := addr.String()
+	return strings.Replace(cfg.OutputPattern, "%", aStr, 1)
 }

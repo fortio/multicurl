@@ -33,6 +33,8 @@ flags:
   -s	Quiet mode (sets log level to warning quietly)
   -H key:value
     	Additional http header(s). Multiple key:value pairs can be passed using multiple -H.
+  -o string
+    	Output file name pattern, e.g "out-%.html" where % will be replaced by the ip, default is stdout
   -loglevel value
     	loglevel, one of [Debug Verbose Info Warning Error Critical Fatal] (default Info)
   -method string

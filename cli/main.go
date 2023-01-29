@@ -71,15 +71,15 @@ func Main() int {
 	var headersFlags headersFlagList
 	flag.Var(&headersFlags, "H",
 		"Additional http header(s). Multiple `key:value` pairs can be passed using multiple -H.")
+	output := flag.String("o", "", `Output file name pattern, e.g "out-%.html" where % will be replaced by the ip, default is stdout`)
 	flag.CommandLine.Usage = func() { usage("") }
 	log.SetFlagDefaultsForClientTools()
-	sV, longV, fullV := version.FromBuildInfo()
+	sV, _, fullV := version.FromBuildInfo()
 	shortV = sV
 	flag.Parse()
 	if *quietFlag {
 		log.SetLogLevelQuiet(log.Warning)
 	}
-
 	if *fullVersion {
 		fmt.Print(fullV)
 		return 0
@@ -99,7 +99,6 @@ func Main() int {
 		return 1
 	}
 	url := flag.Args()[0]
-	log.Infof("Fortio multicurl %s, using resolver %s, %s %s", longV, resolveType, *method, url)
 	ctx, cncl := context.WithTimeout(context.Background(), *totalTimeout)
 	defer cncl()
 	config.RequestTimeout = *requestTimeout
@@ -107,6 +106,7 @@ func Main() int {
 	config.URL = url
 	config.ResolveType = resolveType
 	config.IncludeHeaders = *inclHeaders
+	config.OutputPattern = *output
 	log.Debugf("Config: %+v", config)
 	return mc.MultiCurl(ctx, config)
 }
