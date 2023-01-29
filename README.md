@@ -61,7 +61,7 @@ Date: Sun, 29 Jan 2023 01:35:52 GMT
 
 Φορτίο version 1.40.0 h1:jSDO/jGcyC/qTpMZZ84EZbn9BQawsWM9/RMQ9s6Cn3w= go1.19.5 arm64 linux (in fortio.org/proxy 1.8.0)
 Debug server on a1 up for 22h55m36.7s
-Request from [2600:1700:1151:b24f:7000:a8f4:394d:fe7a]:59546 https TLS_AES_128_GCM_SHA256
+Request from [2600:1700:...ipv6 masked...]:59546 https TLS_AES_128_GCM_SHA256
 
 GET / HTTP/2.0
 
@@ -83,7 +83,7 @@ Date: Sun, 29 Jan 2023 01:35:52 GMT
 
 Φορτίο version 1.40.0 h1:jSDO/jGcyC/qTpMZZ84EZbn9BQawsWM9/RMQ9s6Cn3w= go1.19.5 amd64 linux (in fortio.org/proxy 1.8.0)
 Debug server on l1 up for 22h49m20.5s
-Request from [2600:1700:1151:b24f:7000:a8f4:394d:fe7a]:59548 https TLS_AES_128_GCM_SHA256
+Request from [2600:1700:...ipv6 masked...]]:59548 https TLS_AES_128_GCM_SHA256
 
 GET / HTTP/2.0
 
@@ -105,7 +105,7 @@ Date: Sun, 29 Jan 2023 01:35:52 GMT
 
 Φορτίο version 1.40.0 h1:jSDO/jGcyC/qTpMZZ84EZbn9BQawsWM9/RMQ9s6Cn3w= go1.19.5 amd64 linux (in fortio.org/proxy 1.8.0)
 Debug server on l2 up for 22h49m2.2s
-Request from [2600:1700:1151:b24f:7000:a8f4:394d:fe7a]:59549 https TLS_AES_128_GCM_SHA256
+Request from [2600:1700::...ipv6 masked...]]:59549 https TLS_AES_128_GCM_SHA256
 
 GET / HTTP/2.0
 
@@ -127,7 +127,7 @@ Date: Sun, 29 Jan 2023 01:35:52 GMT
 
 Φορτίο version 1.40.0 h1:jSDO/jGcyC/qTpMZZ84EZbn9BQawsWM9/RMQ9s6Cn3w= go1.19.5 amd64 linux (in fortio.org/proxy 1.8.0)
 Debug server on l2 up for 22h49m2.2s
-Request from 99.73.39.83:59550 https TLS_AES_128_GCM_SHA256
+Request from 99..ipv4-masked...:59550 https TLS_AES_128_GCM_SHA256
 
 GET / HTTP/2.0
 
@@ -149,7 +149,7 @@ Date: Sun, 29 Jan 2023 01:35:53 GMT
 
 Φορτίο version 1.40.0 h1:jSDO/jGcyC/qTpMZZ84EZbn9BQawsWM9/RMQ9s6Cn3w= go1.19.5 amd64 linux (in fortio.org/proxy 1.8.0)
 Debug server on l1 up for 22h49m20.7s
-Request from 99.73.39.83:59551 https TLS_AES_128_GCM_SHA256
+Request from 99..ipv4-masked...:59551 https TLS_AES_128_GCM_SHA256
 
 GET / HTTP/2.0
 
@@ -171,7 +171,7 @@ Date: Sun, 29 Jan 2023 01:35:53 GMT
 
 Φορτίο version 1.40.0 h1:jSDO/jGcyC/qTpMZZ84EZbn9BQawsWM9/RMQ9s6Cn3w= go1.19.5 arm64 linux (in fortio.org/proxy 1.8.0)
 Debug server on a1 up for 22h55m37.3s
-Request from 99.73.39.83:59552 https TLS_AES_128_GCM_SHA256
+Request from 99..ipv4-masked...:59552 https TLS_AES_128_GCM_SHA256
 
 GET / HTTP/2.0
 
