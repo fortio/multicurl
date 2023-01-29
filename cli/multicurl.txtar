@@ -75,8 +75,9 @@ multicurl -4 -loglevel verbose -H User-Agent: -H FOO-heaDER:bAr debug.fortio.org
 stdout 'Foo-Header: bAr'
 
 # Host header
-multicurl -4 -loglevel verbose -H Host:debug.fortio.org demo.fortio.org
+multicurl -4 -loglevel verbose -H Host:debug.fortio.org -d 'foo bar' demo.fortio.org
 stdout 'Debug server on'
+stdout 'foo bar'
 stderr 'V Will be setting special Host header to debug.fortio.org'
 
 # bad -H

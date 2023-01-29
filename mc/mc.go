@@ -19,6 +19,7 @@ package mc
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -45,6 +46,7 @@ type Config struct {
 	Headers        http.Header
 	HostOverride   string
 	OutputPattern  string
+	Payload        []byte
 }
 
 var (
@@ -88,7 +90,12 @@ func MultiCurl(ctx context.Context, cfg *Config) int {
 		plural = "es"
 	}
 	log.Infof("Resolved %s %s:%s to port %d and %d address%s %v", cfg.ResolveType, host, port, portNum, len(addrs), plural, addrs)
-	req, err := http.NewRequestWithContext(ctx, cfg.Method, urlString, nil)
+	var data io.Reader
+	if cfg.Payload != nil {
+		log.LogVf("Using payload of %d bytes", len(cfg.Payload))
+		data = io.NopCloser(bytes.NewReader(cfg.Payload))
+	}
+	req, err := http.NewRequestWithContext(ctx, cfg.Method, urlString, data)
 	req.Header = cfg.Headers
 	req.Host = cfg.HostOverride
 	if err != nil {
