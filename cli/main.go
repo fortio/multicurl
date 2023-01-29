@@ -64,7 +64,7 @@ func Main() int {
 	ipv4 := flag.Bool("4", false, "Use only IPv4")
 	ipv6 := flag.Bool("6", false, "Use only IPv6")
 	inclHeaders := flag.Bool("i", false, "Include response headers in output")
-	method := flag.String("method", http.MethodGet, "HTTP method")
+	method := flag.String("X", "", "HTTP method to use, default is GET unless -d is set which defaults to POST")
 	totalTimeout := flag.Duration("total-timeout", 30*time.Second, "HTTP method")
 	requestTimeout := flag.Duration("request-timeout", 3*time.Second, "HTTP method")
 	quietFlag := flag.Bool("s", false, "Quiet mode (sets log level to warning quietly)")
@@ -108,7 +108,15 @@ func Main() int {
 	config.ResolveType = resolveType
 	config.IncludeHeaders = *inclHeaders
 	config.OutputPattern = *output
-	config.Payload = []byte(*data)
+	if *data != "" {
+		if config.Method == "" {
+			config.Method = http.MethodPost
+		}
+		config.Payload = []byte(*data)
+	}
+	if config.Method == "" {
+		config.Method = http.MethodGet
+	}
 	log.Debugf("Config: %+v", config)
 	return mc.MultiCurl(ctx, config)
 }

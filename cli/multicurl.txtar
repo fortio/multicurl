@@ -74,10 +74,11 @@ multicurl -4 -loglevel verbose -H User-Agent: -H FOO-heaDER:bAr debug.fortio.org
 ! stdout User-Agent
 stdout 'Foo-Header: bAr'
 
-# Host header
+# Host header and a POST (count 2 is assuming cloudflare 2 ips)
 multicurl -4 -loglevel verbose -H Host:debug.fortio.org -d 'foo bar' demo.fortio.org
 stdout 'Debug server on'
-stdout 'foo bar'
+stdout 'POST / HTTP/1.1'
+stdout -count=2 'foo bar'
 stderr 'V Will be setting special Host header to debug.fortio.org'
 
 # bad -H
@@ -88,11 +89,16 @@ stderr 'invalid value "foo" for flag -H: invalid extra header .foo., expecting K
 ! multicurl -o foo debug.fortio.org
 stderr 'F Output pattern must contain %$'
 
-# write to files (if debug.fortio.org IP for a1 changes this will need an update)
+# write to files (if debug.fortio.org IP for a1 changes this will need an update, ditto if it's not 3 ipv4 addresses anymore)
 multicurl -4 -o out.%.txt debug.fortio.org
-stderr 'I .: Writing to out\.[0-9]+\.[0-9]+\.[0-9]+\.[0-9]\.txt'
+stderr -count=3 'I .: Writing to out\.[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\.txt'
 grep 'Debug server on a1' out.18.222.136.83.txt
 
 # error case
 ! multicurl -4 -i -o /doesnexist/debug.%.txt debug.fortio.org
 stderr 'F Error creating file /doesnexist/debug.+: open /doesnexist/debug.+: no such file or directory'
+
+# Weird method test - count depends on number of ip addresses for debug.fortio.org
+multicurl -4 -X INFO -d 'blah blah' https://debug.fortio.org
+stdout 'INFO / HTTP/2.0'
+stdout -count=3 'blah blah'

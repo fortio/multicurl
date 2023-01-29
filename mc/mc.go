@@ -90,12 +90,7 @@ func MultiCurl(ctx context.Context, cfg *Config) int {
 		plural = "es"
 	}
 	log.Infof("Resolved %s %s:%s to port %d and %d address%s %v", cfg.ResolveType, host, port, portNum, len(addrs), plural, addrs)
-	var data io.Reader
-	if cfg.Payload != nil {
-		log.LogVf("Using payload of %d bytes", len(cfg.Payload))
-		data = io.NopCloser(bytes.NewReader(cfg.Payload))
-	}
-	req, err := http.NewRequestWithContext(ctx, cfg.Method, urlString, data)
+	req, err := http.NewRequestWithContext(ctx, cfg.Method, urlString, nil)
 	req.Header = cfg.Headers
 	req.Host = cfg.HostOverride
 	if err != nil {
@@ -111,52 +106,11 @@ func MultiCurl(ctx context.Context, cfg *Config) int {
 		},
 	}
 	numWarnings := 0
-	useStdout := (cfg.OutputPattern == "" || cfg.OutputPattern == "-")
 	for idx, addr := range addrs {
-		i := idx + 1 // humans count from 1
-		log.LogVf("%d: Using %s", i, addr)
-		var out *bufio.Writer
-		if useStdout {
-			out = bufio.NewWriter(os.Stdout)
-		} else {
-			fname := Filename(cfg, addr)
-			f, err := os.Create(fname)
-			if err != nil {
-				return log.FErrf("Error creating file %s: %v", fname, err)
-			}
-			defer f.Close()
-			out = bufio.NewWriter(f)
-			log.Infof("%d: Writing to %s", i, fname)
-		}
-		aStr := IPPortString(addr, portNum)
-		tr.DialContext = func(ctx context.Context, network, oAddr string) (net.Conn, error) {
-			log.LogVf("%d: DialContext %s %s -> %s", i, network, oAddr, aStr)
-			d := net.Dialer{}
-			return d.DialContext(ctx, "tcp", aStr)
-		}
-		resp, err := cli.Do(req)
-		if err != nil {
-			log.Errf("%d: Error fetching %s: %v", i, addr, err)
-			numErrors++
-			continue
-		}
-		level := log.Info
-		if resp.StatusCode != http.StatusOK {
-			level = log.Warning
-			numWarnings++
-		}
-		log.Logf(level, "%d: Status %d %q from %s", i, resp.StatusCode, resp.Status, addr)
-		if cfg.IncludeHeaders {
-			DumpResponseDetails(out, resp)
-		}
-		data, err := io.ReadAll(resp.Body)
-		_ = resp.Body.Close()
-		if err != nil {
-			log.Errf("%d: Error reading body from %s: %v", i, addr, err)
-			numErrors++
-		}
-		_, _ = out.Write(data)
-		_ = out.Flush()
+		// humans start counting at 1
+		nErr, nWarn := OneRequest(idx+1, cfg, addr, portNum, req, tr, cli)
+		numErrors += nErr
+		numWarnings += nWarn
 	}
 	level := log.Info
 	if numWarnings > 0 {
@@ -167,6 +121,62 @@ func MultiCurl(ctx context.Context, cfg *Config) int {
 	}
 	log.Logf(level, "Total %d %s (%d %s)", numErrors, Plural(numErrors, "error"), numWarnings, Plural(numWarnings, "warning"))
 	return numErrors
+}
+
+func OneRequest(i int, cfg *Config, addr net.IP, portNum int, req *http.Request, tr *http.Transport, cli http.Client) (int, int) {
+	numWarnings := 0
+	numErrors := 0
+	useStdout := (cfg.OutputPattern == "" || cfg.OutputPattern == "-")
+	log.LogVf("%d: Using %s", i, addr)
+	if cfg.Payload != nil {
+		// need to reset the body for each request
+		log.LogVf("Using payload of %d bytes", len(cfg.Payload))
+		req.Body = io.NopCloser(bytes.NewReader(cfg.Payload))
+	}
+	var out *bufio.Writer
+	if useStdout {
+		out = bufio.NewWriter(os.Stdout)
+	} else {
+		fname := Filename(cfg, addr)
+		f, err := os.Create(fname)
+		if err != nil {
+			log.Errf("Error creating file %s: %v", fname, err)
+			return 1, 0
+		}
+		defer f.Close()
+		out = bufio.NewWriter(f)
+		log.Infof("%d: Writing to %s", i, fname)
+	}
+	aStr := IPPortString(addr, portNum)
+	tr.DialContext = func(ctx context.Context, network, oAddr string) (net.Conn, error) {
+		log.LogVf("%d: DialContext %s %s -> %s", i, network, oAddr, aStr)
+		d := net.Dialer{}
+		return d.DialContext(ctx, "tcp", aStr)
+	}
+	resp, err := cli.Do(req)
+	req.Body = io.NopCloser(bytes.NewReader(cfg.Payload))
+	if err != nil {
+		log.Errf("%d: Error fetching %s: %v", i, addr, err)
+		return 1, 0
+	}
+	level := log.Info
+	if resp.StatusCode != http.StatusOK {
+		level = log.Warning
+		numWarnings++
+	}
+	log.Logf(level, "%d: Status %d %q from %s", i, resp.StatusCode, resp.Status, addr)
+	if cfg.IncludeHeaders {
+		DumpResponseDetails(out, resp)
+	}
+	data, err := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+	if err != nil {
+		log.Errf("%d: Error reading body from %s: %v", i, addr, err)
+		numErrors++
+	}
+	_, _ = out.Write(data)
+	_ = out.Flush()
+	return numErrors, numWarnings
 }
 
 func Plural(i int, noun string) string {
