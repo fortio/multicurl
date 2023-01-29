@@ -47,8 +47,9 @@ func usage(msg string, args ...any) {
 // Note that we could use the (new in 1.39) log.Fatalf that doesn't panic for cli tools but
 // it calling os.Exit directly means it doesn't work with the code coverage from `testscript`.
 func Main() int {
-	ipv4 := flag.Bool("4", false, "Only IPv4")
-	ipv6 := flag.Bool("6", false, "Only IPv6")
+	ipv4 := flag.Bool("4", false, "Use only IPv4")
+	ipv6 := flag.Bool("6", false, "Use only IPv6")
+	inclHeaders := flag.Bool("i", false, "Include response headers in output")
 	method := flag.String("method", http.MethodGet, "HTTP method")
 	totalTimeout := flag.Duration("total-timeout", 30*time.Second, "HTTP method")
 	requestTimeout := flag.Duration("request-timeout", 3*time.Second, "HTTP method")
@@ -84,5 +85,11 @@ func Main() int {
 	log.Infof("Fortio multicurl %s, using resolver %s, %s %s", longV, resolveType, *method, url)
 	ctx, cncl := context.WithTimeout(context.Background(), *totalTimeout)
 	defer cncl()
-	return mc.MultiCurl(ctx, *requestTimeout, *method, url, resolveType)
+	return mc.MultiCurl(ctx, &mc.Config{
+		RequestTimeout: *requestTimeout,
+		Method:         *method,
+		URL:            url,
+		ResolveType:    resolveType,
+		IncludeHeaders: *inclHeaders,
+	})
 }

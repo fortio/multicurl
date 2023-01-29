@@ -26,8 +26,10 @@ Relevant flags (some extra are from fortio library but not used/relevant)
 
 ```
 flags:
-  -4	Only IPv4
-  -6	Only IPv6
+flags:
+  -4	Use only IPv4
+  -6	Use only IPv6
+  -i	Include response headers in output
   -s	Quiet mode (sets log level to warning quietly)
   -loglevel value
     	loglevel, one of [Debug Verbose Info Warning Error Critical Fatal] (default Info)
