@@ -13,6 +13,8 @@
 // limitations under the License.
 
 // Multicurl package is a library for the multicurl tool to fetch a url from all its IPs.
+// Some of this code is based on the fortio code.
+// https://github.com/fortio/fortio/blob/master/fnet/network.go
 package mc
 
 import (
@@ -58,7 +60,7 @@ func MultiCurl(ctx context.Context, cfg *Config) int {
 		port = url.Scheme // ie http / https which turns into 80 / 443 later
 		log.LogVf("No port specified, using %s", port)
 	}
-	log.Infof("Resolving %s host %s port %s", cfg.ResolveType, host, port)
+	log.LogVf("Resolving %s host %s port %s", cfg.ResolveType, host, port)
 	portNum, addrs, err := ResolveAll(ctx, host, port, cfg.ResolveType)
 	if err != nil {
 		return 1 // already logged
@@ -82,11 +84,12 @@ func MultiCurl(ctx context.Context, cfg *Config) int {
 		},
 	}
 	numWarnings := 0
-	for i, addr := range addrs {
-		log.Infof("%d: Using %s", i, addr)
+	for idx, addr := range addrs {
+		i := idx + 1 // humans count from 1
+		log.LogVf("%d: Using %s", i, addr)
 		aStr := IPPortString(addr, portNum)
 		tr.DialContext = func(ctx context.Context, network, oAddr string) (net.Conn, error) {
-			log.Infof("%d: DialContext %s %s -> %s", i, network, oAddr, aStr)
+			log.LogVf("%d: DialContext %s %s -> %s", i, network, oAddr, aStr)
 			d := net.Dialer{}
 			return d.DialContext(ctx, "tcp", aStr)
 		}
@@ -140,7 +143,7 @@ func URLAddScheme(url string) string {
 	if strings.HasPrefix(lcURL, "http://") {
 		return url
 	}
-	log.Infof("Assuming http:// on missing scheme for %q", url)
+	log.LogVf("Assuming http:// on missing scheme for %q", url)
 	return "http://" + url
 }
 
