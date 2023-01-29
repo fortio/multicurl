@@ -102,3 +102,18 @@ stderr 'E Error creating file /doesnexist/debug.+: open /doesnexist/debug.+: no 
 multicurl -4 -X INFO -d 'blah blah' https://debug.fortio.org
 stdout 'INFO / HTTP/2.0'
 stdout -count=3 'blah blah'
+
+# Debug summary of proxy is escaping the body thus the \n
+multicurl -4 -d @payloadFile.txt https://debug.fortio.org
+stderr 'I Read 23 bytes from "payloadFile.txt" as payload'
+stdout 'POST / HTTP/2.0'
+stdout 'Content-Length: 23'
+stdout '^body:$'
+stdout '^Just a test\\nof payload\\n$'
+
+! multicurl -4 -d @nosuchfile.txt https://debug.fortio.org
+stderr 'F Unable to read payload from file "nosuchfile.txt": open nosuchfile.txt: no such file or directory'
+
+-- payloadFile.txt --
+Just a test
+of payload

@@ -132,6 +132,7 @@ func OneRequest(i int, cfg *Config, addr net.IP, portNum int, req *http.Request,
 		// need to reset the body for each request
 		log.LogVf("Using payload of %d bytes", len(cfg.Payload))
 		req.Body = io.NopCloser(bytes.NewReader(cfg.Payload))
+		req.ContentLength = int64(len(cfg.Payload)) // avoid chunked encoding, we already know the size
 	}
 	var out *bufio.Writer
 	if useStdout {

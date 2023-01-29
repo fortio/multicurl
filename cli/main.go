@@ -112,11 +112,28 @@ func Main() int {
 		if config.Method == "" {
 			config.Method = http.MethodPost
 		}
-		config.Payload = []byte(*data)
+		config.Payload = payload(*data)
+		if config.Payload == nil {
+			return 1 // error already logged
+		}
 	}
 	if config.Method == "" {
 		config.Method = http.MethodGet
 	}
 	log.Debugf("Config: %+v", config)
 	return mc.MultiCurl(ctx, config)
+}
+
+func payload(dataStr string) []byte {
+	if dataStr[0] != '@' {
+		return []byte(dataStr)
+	}
+	fname := dataStr[1:]
+	data, err := os.ReadFile(fname)
+	if err != nil {
+		log.FErrf("Unable to read payload from file %q: %v", fname, err)
+		return nil
+	}
+	log.Infof("Read %d bytes from %q as payload", len(data), fname)
+	return data
 }
