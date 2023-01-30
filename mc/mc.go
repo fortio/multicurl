@@ -297,17 +297,23 @@ func Filename(cfg *Config, addr net.IP) string {
 }
 
 func ReadIPs(filename string) ([]net.IP, error) {
-	log.Infof("Using content of %q to resolve IPs", filename)
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, err
+	var file io.ReadCloser
+	if filename == "-" {
+		log.Infof("Using stdin for list of IPs to connect to")
+		file = os.Stdin
+	} else {
+		log.Infof("Using content of %q to resolve IPs", filename)
+		var err error
+		file, err = os.Open(filename)
+		if err != nil {
+			return nil, err
+		}
 	}
 	defer file.Close()
 	reader := bufio.NewReader(file)
 	var addrs []net.IP
 	for {
-		var line []byte
-		line, _, err = reader.ReadLine()
+		line, _, err := reader.ReadLine()
 		if errors.Is(err, io.EOF) {
 			break
 		}

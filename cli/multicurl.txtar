@@ -121,6 +121,7 @@ stderr 'F Can.t get requested ips: open nosuchfile.txt: no such file or director
 
 # ip file
 multicurl -4 -I ips.txt https://debug.fortio.org
+stderr 'Using content of "ips.txt" to resolve IPs'
 stderr '18.222.136.83'
 
 # bad ip file
@@ -131,6 +132,11 @@ stderr 'F Can.t get requested ips: unable to parse IP "not-an-ip"'
 ! multicurl -I ipv6.txt http://foo:9099/
 stderr 'I Resolved ip foo:9099 to port 9099 and 2 addresses \[::1 ::2\]'
 stderr 'connect: connection refused'
+
+# stdin ips
+stdin ips.txt
+multicurl -4 -I - https://debug.fortio.org
+stderr 'Using stdin for list of IPs to connect to'
 
 -- payloadFile.txt --
 Just a test
