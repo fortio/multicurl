@@ -26,16 +26,19 @@ Relevant flags (some extra are from fortio library but not used/relevant)
 
 ```
 flags:
-flags:
   -4	Use only IPv4
   -6	Use only IPv6
-  -i	Include response headers in output
-  -s	Quiet mode (sets log level to warning quietly)
   -H key:value
     	Additional http header(s). Multiple key:value pairs can be passed using multiple -H.
+  -I file
+    	IP address file to use instead of resolving the URL, use - for stdin
   -X string
     	HTTP method to use, default is GET unless -d is set which defaults to POST
-  -o string
+  -d string
+    	Payload to POST, use @filename to read from file
+  -i	Include response headers in output
+  -s	Quiet mode (sets log level to warning quietly)
+  -o file name pattern
     	Output file name pattern, e.g "out-%.html" where % will be replaced by the ip, default is stdout
   -loglevel value
     	loglevel, one of [Debug Verbose Info Warning Error Critical Fatal] (default Info)
@@ -45,6 +48,7 @@ flags:
     	HTTP method (default 30s)
   -version
     	Show full version info and exit.
+
 ```
 
 See also [multicurl.txtar](multicurl.txtar) for examples (tests)
