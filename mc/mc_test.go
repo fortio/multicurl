@@ -21,12 +21,9 @@ func TestMulticurl(t *testing.T) {
 }
 
 func TestResolveIP6(t *testing.T) {
-	p, a, err := mc.ResolveAll(context.Background(), "[::1]", "https", "ip")
+	a, err := mc.ResolveAll(context.Background(), "[::1]", "ip")
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
-	}
-	if p != 443 {
-		t.Errorf("Unexpected port: %d", p)
 	}
 	if len(a) != 1 {
 		t.Errorf("Unexpected number of addresses: %d", len(a))

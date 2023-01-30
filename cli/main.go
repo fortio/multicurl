@@ -73,6 +73,7 @@ func Main() int {
 		"Additional http header(s). Multiple `key:value` pairs can be passed using multiple -H.")
 	output := flag.String("o", "", `Output file name pattern, e.g "out-%.html" where % will be replaced by the ip, default is stdout`)
 	data := flag.String("d", "", "Payload to POST, use @filename to read from file")
+	ipInput := flag.String("I", "", "IP address file to use instead of resolving the URL, use - for stdin")
 	flag.CommandLine.Usage = func() { usage("") }
 	log.SetFlagDefaultsForClientTools()
 	sV, _, fullV := version.FromBuildInfo()
@@ -108,6 +109,7 @@ func Main() int {
 	config.ResolveType = resolveType
 	config.IncludeHeaders = *inclHeaders
 	config.OutputPattern = *output
+	config.IPFile = *ipInput
 	if *data != "" {
 		if config.Method == "" {
 			config.Method = http.MethodPost

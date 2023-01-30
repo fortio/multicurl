@@ -21,6 +21,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -47,6 +48,7 @@ type Config struct {
 	HostOverride   string
 	OutputPattern  string
 	Payload        []byte
+	IPFile         string
 }
 
 var (
@@ -80,10 +82,22 @@ func MultiCurl(ctx context.Context, cfg *Config) int {
 		port = url.Scheme // ie http / https which turns into 80 / 443 later
 		log.LogVf("No port specified, using %s", port)
 	}
-	log.LogVf("Resolving %s host %s port %s", cfg.ResolveType, host, port)
-	portNum, addrs, err := ResolveAll(ctx, host, port, cfg.ResolveType)
+	portNum, err := net.LookupPort("tcp", port)
 	if err != nil {
-		return 1 // already logged
+		return log.FErrf("Unable to resolve port %q: %v", port, err)
+	}
+	var addrs []net.IP
+	if cfg.IPFile != "" {
+		addrs, err = ReadIPs(cfg.IPFile)
+		if err != nil {
+			return log.FErrf("Can't get requested ips: %v", err)
+		}
+	} else {
+		log.LogVf("Resolving %s host %s port %s", cfg.ResolveType, host, port)
+		addrs, err = ResolveAll(ctx, host, cfg.ResolveType)
+		if err != nil {
+			return 1 // already logged
+		}
 	}
 	plural := ""
 	if len(addrs) != 1 {
@@ -200,26 +214,21 @@ func URLAddScheme(url string) string {
 	return "http://" + url
 }
 
-func ResolveAll(ctx context.Context, host, portString, resolveType string) (int, []net.IP, error) {
+func ResolveAll(ctx context.Context, host, resolveType string) ([]net.IP, error) {
 	if strings.HasPrefix(host, "[") && strings.HasSuffix(host, "]") {
 		log.Debugf("host %s looks like an IPv6, stripping []", host)
 		host = host[1 : len(host)-1]
 	}
-	port, err := net.LookupPort("tcp", portString)
-	if err != nil {
-		log.Errf("Unable to resolve port %q: %v", portString, err)
-		return 0, nil, err
-	}
 	isAddr := net.ParseIP(host)
 	if isAddr != nil {
-		log.LogVf("Resolved %s:%d already an IP as addr", host, port)
-		return port, []net.IP{isAddr}, nil
+		log.LogVf("Resolved %s already an IP as addr", host)
+		return []net.IP{isAddr}, nil
 	}
 	addrs, err := net.DefaultResolver.LookupIP(ctx, resolveType, host)
 	if err != nil {
 		log.Errf("Unable to lookup %q: %v", host, err)
 	}
-	return port, addrs, err
+	return addrs, err
 }
 
 func IPPortString(ip net.IP, port int) string {
@@ -285,4 +294,35 @@ func NewConfig() *Config {
 func Filename(cfg *Config, addr net.IP) string {
 	aStr := addr.String()
 	return strings.Replace(cfg.OutputPattern, "%", aStr, 1)
+}
+
+func ReadIPs(filename string) ([]net.IP, error) {
+	log.Infof("Using content of %q to resolve IPs", filename)
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	reader := bufio.NewReader(file)
+	var addrs []net.IP
+	for {
+		var line []byte
+		line, _, err = reader.ReadLine()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		ipStr := strings.TrimSpace(string(line))
+		if len(ipStr) == 0 || strings.HasPrefix(ipStr, "#") {
+			continue
+		}
+		if strings.HasPrefix(ipStr, "[") && strings.HasSuffix(ipStr, "]") {
+			ipStr = ipStr[1 : len(ipStr)-1]
+		}
+		ip := net.ParseIP(ipStr)
+		if ip == nil {
+			return nil, fmt.Errorf("unable to parse IP %q", ipStr)
+		}
+		addrs = append(addrs, ip)
+	}
+	return addrs, nil
 }

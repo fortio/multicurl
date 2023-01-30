@@ -57,7 +57,7 @@ stderr 'Status 303 '
 
 # bad port
 ! multicurl http://foo:90000/
-stderr 'E Unable to resolve port "90000": address 90000: invalid port'
+stderr 'F Unable to resolve port "90000": address 90000: invalid port'
 
 # -s mode
 multicurl -4 -s http://demo.fortio.org/x
@@ -111,9 +111,36 @@ stdout 'Content-Length: 23'
 stdout '^body:$'
 stdout '^Just a test\\nof payload\\n$'
 
+# payload file errror
 ! multicurl -4 -d @nosuchfile.txt https://debug.fortio.org
 stderr 'F Unable to read payload from file "nosuchfile.txt": open nosuchfile.txt: no such file or directory'
+
+# ip file error
+! multicurl -4 -I nosuchfile.txt https://debug.fortio.org
+stderr 'F Can.t get requested ips: open nosuchfile.txt: no such file or directory'
+
+# ip file
+multicurl -4 -I ips.txt https://debug.fortio.org
+stderr '18.222.136.83'
+
+# bad ip file
+! multicurl -4 -I badIps.txt https://debug.fortio.org
+stderr 'F Can.t get requested ips: unable to parse IP "not-an-ip"'
+
+# good ipv6
+! multicurl -I ipv6.txt http://foo:9099/
+stderr 'I Resolved ip foo:9099 to port 9099 and 2 addresses \[::1 ::2\]'
+stderr 'connect: connection refused'
 
 -- payloadFile.txt --
 Just a test
 of payload
+-- ips.txt --
+18.222.136.83
+192.9.227.83
+-- badIps.txt --
+not-an-ip
+-- ipv6.txt --
+# This is a comment, ignoref
+[::1]
+::2
