@@ -45,7 +45,8 @@ type Config struct {
 	ResolveType string
 	// Method is the HTTP method to use, defaults to GET. (do use POST/PUT/... if passing a Payload)
 	Method string
-	// RequestTimeout is the timeout for a single request to succeed by. (use the context passed to MultiCurl() for a total timeout)
+	// RequestTimeout is the timeout for a single request to succeed by.
+	// Pass `context.WithTimeout(context.Background(), totalTimeout)` as context to MultiCurl() for a total timeout.
 	RequestTimeout time.Duration
 	// IncludeHeaders if true will include the response headers in the output.
 	IncludeHeaders bool
@@ -60,6 +61,13 @@ type Config struct {
 	Payload []byte
 	// Source file of the IPs to use instead of resolving the host IPs. Use "-" to read from stdin.
 	IPFile string
+	// Expected http result code: other codes will count as errors. 0 (default) treats non 200 as warnings.
+	ExpectedCode int
+	// Repeat until no errors. 0 (default) means no repeat. -1 means repeat until no errors (context timeout still applies.
+	// a positive number means repeat that at most that many times.
+	MaxRepeat int
+	// Delay between repeats. NewConfig will set this to 5 seconds as initial value.
+	RepeatDelay time.Duration
 }
 
 // ResultStats is the details of the MultCurl run when any request is made at all.
@@ -74,6 +82,8 @@ type ResultStats struct {
 	Codes map[string]int
 	// Size of the response from that address
 	Sizes map[string]int
+	// Iterations done
+	Iterations int
 }
 
 var (
@@ -149,27 +159,56 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
 			return http.ErrUseLastResponse
 		},
 	}
-	for idx, addr := range addrs {
-		// humans start counting at 1
-		nErr, nWarn, status, size := oneRequest(idx+1, cfg, addr, portNum, req, tr, cli)
-		result.Errors += nErr
-		result.Warnings += nWarn
-		aStr := addr.String()
-		result.Addresses = append(result.Addresses, aStr)
-		result.Codes[aStr] = status
-		result.Sizes[aStr] = size
+	result.Iterations = 1
+	lastIterErrors := 0
+	lastIterWarnings := 0
+	for {
+		lastIterErrors = 0
+		lastIterWarnings = 0
+		for idx, addr := range addrs {
+			// humans start counting at 1
+			nErr, nWarn, status, size := oneRequest(idx+1, cfg, addr, portNum, req, tr, cli)
+			lastIterErrors += nErr
+			lastIterWarnings += nWarn
+			aStr := addr.String()
+			if result.Iterations == 1 {
+				// only save the addresses list once
+				result.Addresses = append(result.Addresses, aStr)
+			}
+			// will be the last iteration's results
+			result.Codes[aStr] = status
+			result.Sizes[aStr] = size
+		}
+		result.Errors += lastIterErrors
+		result.Warnings += lastIterWarnings
+		level := log.Info
+		if result.Warnings > 0 {
+			level = log.Warning
+		}
+		if result.Errors > 0 {
+			level = log.Error
+		}
+		log.Logf(level, "[%d] %d %s (%d %s)", result.Iterations,
+			lastIterErrors, Plural(lastIterErrors, "error"),
+			lastIterWarnings, Plural(lastIterWarnings, "warning"))
+		if lastIterErrors == 0 {
+			break
+		}
+		if cfg.MaxRepeat >= 0 && result.Iterations > cfg.MaxRepeat {
+			log.Errf("Reached max repeat %d", cfg.MaxRepeat)
+			break
+		}
+		log.LogVf("Sleeping for %v before next iteration", cfg.RepeatDelay)
+		select {
+		case <-ctx.Done():
+			log.Errf("Interrupted/total timeout reached")
+			return lastIterErrors, result
+		case <-time.After(cfg.RepeatDelay):
+			// normal pause
+		}
+		result.Iterations++
 	}
-	level := log.Info
-	if result.Warnings > 0 {
-		level = log.Warning
-	}
-	if result.Errors > 0 {
-		level = log.Error
-	}
-	log.Logf(level, "Total %d %s (%d %s)",
-		result.Errors, Plural(result.Errors, "error"),
-		result.Warnings, Plural(result.Warnings, "warning"))
-	return result.Errors, result
+	return lastIterErrors, result
 }
 
 func oneRequest(i int, cfg *Config, addr net.IP, portNum int,
@@ -212,7 +251,12 @@ func oneRequest(i int, cfg *Config, addr net.IP, portNum int,
 		return 1, 0, -1, -1
 	}
 	level := log.Info
-	if resp.StatusCode != http.StatusOK {
+	if cfg.ExpectedCode > 0 {
+		if resp.StatusCode != cfg.ExpectedCode {
+			level = log.Error
+			numErrors++
+		}
+	} else if resp.StatusCode != http.StatusOK {
 		level = log.Warning
 		numWarnings++
 	}
@@ -322,7 +366,8 @@ func (cfg *Config) AddAndValidateExtraHeader(hdr string) error {
 
 func NewConfig() *Config {
 	cfg := Config{
-		Headers: make(http.Header, 1),
+		Headers:     make(http.Header, 1),
+		RepeatDelay: 5 * time.Second,
 	}
 	cfg.Headers.Set("User-Agent", "fortio.org/multicurl-"+libShortVersion)
 	return &cfg

@@ -75,6 +75,11 @@ func Main() int {
 		"Output `file name pattern`, e.g \"out-%.html\" where % will be replaced by the ip, default is stdout")
 	data := flag.String("d", "", "Payload to POST, use @filename to read from file")
 	ipInput := flag.String("I", "", "IP address `file` to use instead of resolving the URL, use - for stdin")
+	expected := flag.Int("expected", 0,
+		"Expected HTTP return code, 0 means any and non 200s will be warning otherwise if set any different code is an error")
+	repeat := flag.Int("repeat", 0,
+		"Max number of times to retry on errors if positive, default is 0 (no retry), negative is retry until -total-timeout")
+	retryDelay := flag.Duration("repeat-delay", 5*time.Second, "Delay between retries")
 	flag.CommandLine.Usage = func() { usage("") }
 	log.SetFlagDefaultsForClientTools()
 	sV, _, fullV := version.FromBuildInfo()
@@ -111,6 +116,9 @@ func Main() int {
 	config.IncludeHeaders = *inclHeaders
 	config.OutputPattern = *output
 	config.IPFile = *ipInput
+	config.ExpectedCode = *expected
+	config.MaxRepeat = *repeat
+	config.RepeatDelay = *retryDelay
 	if *data != "" {
 		if config.Method == "" {
 			config.Method = http.MethodPost
@@ -125,7 +133,8 @@ func Main() int {
 	}
 	log.Debugf("Config: %+v", config)
 	exitCode, results := mc.MultiCurl(ctx, config)
-	log.Infof("Detailed results: %+v", results)
+	log.Debugf("Results: %+v", results)
+	log.Infof("Total iterations: %d, errors: %d, warnings %d", results.Iterations, results.Errors, results.Warnings)
 	return exitCode
 }
 
