@@ -124,7 +124,9 @@ func Main() int {
 		config.Method = http.MethodGet
 	}
 	log.Debugf("Config: %+v", config)
-	return mc.MultiCurl(ctx, config)
+	exitCode, results := mc.MultiCurl(ctx, config)
+	log.Infof("Detailed results: %+v", results)
+	return exitCode
 }
 
 func payload(dataStr string) []byte {
