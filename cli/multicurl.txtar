@@ -52,7 +52,7 @@ stderr 'E Unable to lookup "doesntexist.fortio.org": lookup doesntexist.fortio.o
 
 # redirect
 multicurl -4 http://demo.fortio.org/x
-stderr 'Total 0 errors \(2 warnings\)'
+stderr '\[1\] 0 errors \(2 warnings\)'
 stderr 'Status 303 '
 
 # bad port
@@ -62,7 +62,7 @@ stderr 'F Unable to resolve port "90000": address 90000: invalid port'
 # -s mode
 multicurl -4 -s http://demo.fortio.org/x
 ! stderr 'I Resolving'
-stderr 'W Total 0 errors \(2 warnings\)'
+stderr 'W \[1\] 0 errors \(2 warnings\)'
 
 # -i mode (assumes demo.fortio.org is fronted by cloudflare)
 multicurl -4 -i http://demo.fortio.org/x
@@ -137,6 +137,11 @@ stderr 'connect: connection refused'
 stdin ips.txt
 multicurl -4 -I - https://debug.fortio.org
 stderr 'Using stdin for list of IPs to connect to'
+
+# retries
+! multicurl -4 -repeat -1 -repeat-delay 1s -total-timeout 2.5s -expected 301 http://debug.fortio.org
+stderr 'E Interrupted/total timeout reached'
+stderr 'I Total iterations: 2,'
 
 -- payloadFile.txt --
 Just a test

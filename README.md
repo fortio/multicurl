@@ -2,7 +2,7 @@
 
 # multicurl
 
-Fetches a URL from all the IPs of a given host
+Fetches a URL from all the IPs of a given host. Optionally repeat until an expected result code is obtained from all addresses.
 
 ## Installation
 ```shell
@@ -26,6 +26,7 @@ Relevant flags (some extra are from fortio library but not used/relevant)
 
 ```
 flags:
+flags:
   -4	Use only IPv4
   -6	Use only IPv6
   -H key:value
@@ -36,19 +37,24 @@ flags:
     	HTTP method to use, default is GET unless -d is set which defaults to POST
   -d string
     	Payload to POST, use @filename to read from file
+  -expected int
+    	Expected HTTP return code, 0 means any and non 200s will be warning otherwise if set any different code is an error
   -i	Include response headers in output
-  -s	Quiet mode (sets log level to warning quietly)
-  -o file name pattern
-    	Output file name pattern, e.g "out-%.html" where % will be replaced by the ip, default is stdout
   -loglevel value
     	loglevel, one of [Debug Verbose Info Warning Error Critical Fatal] (default Info)
+  -o file name pattern
+    	Output file name pattern, e.g "out-%.html" where % will be replaced by the ip, default is stdout
+  -repeat int
+    	Max number of times to retry on errors if positive, default is 0 (no retry), negative is retry until -total-timeout
+  -repeat-delay duration
+    	Delay between retries (default 5s)
   -request-timeout duration
     	HTTP method (default 3s)
+  -s	Quiet mode (sets log level to warning quietly)
   -total-timeout duration
     	HTTP method (default 30s)
   -version
     	Show full version info and exit.
-
 ```
 
 See also [multicurl.txtar](multicurl.txtar) for examples (tests)

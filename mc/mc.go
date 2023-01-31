@@ -39,16 +39,51 @@ import (
 
 // Config object for MultiCurl to avoid passing too many parameters.
 type Config struct {
-	URL            string
-	ResolveType    string // `ip4`, `ip6`, or `ip` for both.
-	Method         string
+	// URL is the url to access.
+	URL string
+	// ResolveType is a filter for the IPs to use, `ip4`, `ip6`, or `ip` for both.
+	ResolveType string
+	// Method is the HTTP method to use, defaults to GET. (do use POST/PUT/... if passing a Payload)
+	Method string
+	// RequestTimeout is the timeout for a single request to succeed by.
+	// Pass `context.WithTimeout(context.Background(), totalTimeout)` as context to MultiCurl() for a total timeout.
 	RequestTimeout time.Duration
+	// IncludeHeaders if true will include the response headers in the output.
 	IncludeHeaders bool
-	Headers        http.Header
-	HostOverride   string
-	OutputPattern  string
-	Payload        []byte
-	IPFile         string
+	// Headers are the headers to use for the request. Must be initialized. Or call NewConfig().
+	Headers http.Header
+	// HostOverride is the host/authority to use for the request. If empty, the host from the URL is used
+	HostOverride string
+	// OutputPattern is the pattern to use for the output file names, must contain a % which will get replaced by
+	// the IP of the target. If empty, output is written to stdout.
+	OutputPattern string
+	// Payload to send or nil if none.
+	Payload []byte
+	// Source file of the IPs to use instead of resolving the host IPs. Use "-" to read from stdin.
+	IPFile string
+	// Expected http result code: other codes will count as errors. 0 (default) treats non 200 as warnings.
+	ExpectedCode int
+	// Repeat until no errors. 0 (default) means no repeat. -1 means repeat until no errors (context timeout still applies.
+	// a positive number means repeat that at most that many times.
+	MaxRepeat int
+	// Delay between repeats. NewConfig will set this to 5 seconds as initial value.
+	RepeatDelay time.Duration
+}
+
+// ResultStats is the details of the MultCurl run when any request is made at all.
+type ResultStats struct {
+	// Number of errors (if any request is made at all)
+	Errors int
+	// Number of warnings, ie non 200 responses
+	Warnings int
+	// Addresses queried (keys of Codes and Sizes)
+	Addresses []string
+	// http result code for that address (maps to Warnings)
+	Codes map[string]int
+	// Size of the response from that address
+	Sizes map[string]int
+	// Iterations done
+	Iterations int
 }
 
 var (
@@ -61,20 +96,25 @@ func init() {
 }
 
 // MultiCurl is the main function of the multicurl tool. timeout is per request/ip.
-func MultiCurl(ctx context.Context, cfg *Config) int {
+// Returns 0 if all is successful, the number of errors otherwise.
+// ResultStats is the details of the run (see ResultStats).
+func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
 	log.Infof("Fortio multicurl %s, using resolver %s, %s %s", libLongVersion, cfg.ResolveType, cfg.Method, cfg.URL)
-	if cfg.OutputPattern != "" && cfg.OutputPattern != "-" && !strings.Contains(cfg.OutputPattern, "%") {
-		return log.FErrf("Output pattern must contain %%")
+	result := ResultStats{
+		Codes: make(map[string]int),
+		Sizes: make(map[string]int),
 	}
-	numErrors := 0
+	if cfg.OutputPattern != "" && cfg.OutputPattern != "-" && !strings.Contains(cfg.OutputPattern, "%") {
+		return log.FErrf("Output pattern must contain %%"), result
+	}
 	if len(cfg.URL) == 0 {
-		return log.FErrf("Unexpected empty url")
+		return log.FErrf("Unexpected empty url"), result
 	}
 	urlString := URLAddScheme(cfg.URL)
 	// Parse the url, extract components.
 	url, err := url.Parse(urlString)
 	if err != nil {
-		return log.FErrf("Bad url %q : %v", urlString, err)
+		return log.FErrf("Bad url %q : %v", urlString, err), result
 	}
 	host := url.Hostname()
 	port := url.Port()
@@ -84,19 +124,19 @@ func MultiCurl(ctx context.Context, cfg *Config) int {
 	}
 	portNum, err := net.LookupPort("tcp", port)
 	if err != nil {
-		return log.FErrf("Unable to resolve port %q: %v", port, err)
+		return log.FErrf("Unable to resolve port %q: %v", port, err), result
 	}
 	var addrs []net.IP
 	if cfg.IPFile != "" {
 		addrs, err = ReadIPs(cfg.IPFile)
 		if err != nil {
-			return log.FErrf("Can't get requested ips: %v", err)
+			return log.FErrf("Can't get requested ips: %v", err), result
 		}
 	} else {
 		log.LogVf("Resolving %s host %s port %s", cfg.ResolveType, host, port)
 		addrs, err = ResolveAll(ctx, host, cfg.ResolveType)
 		if err != nil {
-			return 1 // already logged
+			return 1, result // already logged
 		}
 	}
 	plural := ""
@@ -108,7 +148,7 @@ func MultiCurl(ctx context.Context, cfg *Config) int {
 	req.Header = cfg.Headers
 	req.Host = cfg.HostOverride
 	if err != nil {
-		return log.FErrf("Error creating request: %v", err)
+		return log.FErrf("Error creating request: %v", err), result
 	}
 	tr := http.DefaultTransport.(*http.Transport).Clone()
 	tr.DisableKeepAlives = true
@@ -119,25 +159,61 @@ func MultiCurl(ctx context.Context, cfg *Config) int {
 			return http.ErrUseLastResponse
 		},
 	}
-	numWarnings := 0
-	for idx, addr := range addrs {
-		// humans start counting at 1
-		nErr, nWarn := OneRequest(idx+1, cfg, addr, portNum, req, tr, cli)
-		numErrors += nErr
-		numWarnings += nWarn
+	result.Iterations = 1
+	lastIterErrors := 0
+	lastIterWarnings := 0
+	for {
+		lastIterErrors = 0
+		lastIterWarnings = 0
+		for idx, addr := range addrs {
+			// humans start counting at 1
+			nErr, nWarn, status, size := oneRequest(idx+1, cfg, addr, portNum, req, tr, cli)
+			lastIterErrors += nErr
+			lastIterWarnings += nWarn
+			aStr := addr.String()
+			if result.Iterations == 1 {
+				// only save the addresses list once
+				result.Addresses = append(result.Addresses, aStr)
+			}
+			// will be the last iteration's results
+			result.Codes[aStr] = status
+			result.Sizes[aStr] = size
+		}
+		result.Errors += lastIterErrors
+		result.Warnings += lastIterWarnings
+		level := log.Info
+		if result.Warnings > 0 {
+			level = log.Warning
+		}
+		if result.Errors > 0 {
+			level = log.Error
+		}
+		log.Logf(level, "[%d] %d %s (%d %s)", result.Iterations,
+			lastIterErrors, Plural(lastIterErrors, "error"),
+			lastIterWarnings, Plural(lastIterWarnings, "warning"))
+		if lastIterErrors == 0 {
+			break
+		}
+		if cfg.MaxRepeat >= 0 && result.Iterations > cfg.MaxRepeat {
+			log.Errf("Reached max repeat %d", cfg.MaxRepeat)
+			break
+		}
+		log.LogVf("Sleeping for %v before next iteration", cfg.RepeatDelay)
+		select {
+		case <-ctx.Done():
+			log.Errf("Interrupted/total timeout reached")
+			return lastIterErrors, result
+		case <-time.After(cfg.RepeatDelay):
+			// normal pause
+		}
+		result.Iterations++
 	}
-	level := log.Info
-	if numWarnings > 0 {
-		level = log.Warning
-	}
-	if numErrors > 0 {
-		level = log.Error
-	}
-	log.Logf(level, "Total %d %s (%d %s)", numErrors, Plural(numErrors, "error"), numWarnings, Plural(numWarnings, "warning"))
-	return numErrors
+	return lastIterErrors, result
 }
 
-func OneRequest(i int, cfg *Config, addr net.IP, portNum int, req *http.Request, tr *http.Transport, cli http.Client) (int, int) {
+func oneRequest(i int, cfg *Config, addr net.IP, portNum int,
+	req *http.Request, tr *http.Transport, cli http.Client,
+) (int, int, int, int) {
 	numWarnings := 0
 	numErrors := 0
 	useStdout := (cfg.OutputPattern == "" || cfg.OutputPattern == "-")
@@ -156,7 +232,7 @@ func OneRequest(i int, cfg *Config, addr net.IP, portNum int, req *http.Request,
 		f, err := os.Create(fname)
 		if err != nil {
 			log.Errf("Error creating file %s: %v", fname, err)
-			return 1, 0
+			return 1, 0, -1, -1
 		}
 		defer f.Close()
 		out = bufio.NewWriter(f)
@@ -172,10 +248,15 @@ func OneRequest(i int, cfg *Config, addr net.IP, portNum int, req *http.Request,
 	req.Body = io.NopCloser(bytes.NewReader(cfg.Payload))
 	if err != nil {
 		log.Errf("%d: Error fetching %s: %v", i, addr, err)
-		return 1, 0
+		return 1, 0, -1, -1
 	}
 	level := log.Info
-	if resp.StatusCode != http.StatusOK {
+	if cfg.ExpectedCode > 0 {
+		if resp.StatusCode != cfg.ExpectedCode {
+			level = log.Error
+			numErrors++
+		}
+	} else if resp.StatusCode != http.StatusOK {
 		level = log.Warning
 		numWarnings++
 	}
@@ -191,7 +272,7 @@ func OneRequest(i int, cfg *Config, addr net.IP, portNum int, req *http.Request,
 	}
 	_, _ = out.Write(data)
 	_ = out.Flush()
-	return numErrors, numWarnings
+	return numErrors, numWarnings, resp.StatusCode, len(data)
 }
 
 func Plural(i int, noun string) string {
@@ -285,7 +366,8 @@ func (cfg *Config) AddAndValidateExtraHeader(hdr string) error {
 
 func NewConfig() *Config {
 	cfg := Config{
-		Headers: make(http.Header, 1),
+		Headers:     make(http.Header, 1),
+		RepeatDelay: 5 * time.Second,
 	}
 	cfg.Headers.Set("User-Agent", "fortio.org/multicurl-"+libShortVersion)
 	return &cfg
