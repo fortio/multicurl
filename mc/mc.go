@@ -68,6 +68,10 @@ type Config struct {
 	MaxRepeat int
 	// Delay between repeats. NewConfig will set this to 5 seconds as initial value.
 	RepeatDelay time.Duration
+	// Limit the number of IPs to use. 0 (default) means no limit.
+	MaxIPs int
+	// Re-Lookup between iterations. False by default. doesn't apply if IPFile is set.
+	ReLookup bool
 }
 
 // ResultStats is the details of the MultCurl run when any request is made at all.
@@ -165,6 +169,7 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
 	for {
 		lastIterErrors = 0
 		lastIterWarnings = 0
+		addrs = addrs[:cfg.MaxIPs]
 		for idx, addr := range addrs {
 			// humans start counting at 1
 			nErr, nWarn, status, size := oneRequest(idx+1, cfg, addr, portNum, req, tr, cli)
@@ -205,6 +210,14 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
 			return lastIterErrors, result
 		case <-time.After(cfg.RepeatDelay):
 			// normal pause
+		}
+		if cfg.ReLookup && cfg.IPFile == "" {
+			log.LogVf("Re-resolving %s host %s port %s", cfg.ResolveType, host, port)
+			addrs, err = ResolveAll(ctx, host, cfg.ResolveType)
+			if err != nil {
+				return 1, result // already logged
+			}
+			log.Infof("Re-resolved %d address%s %v", cfg.ResolveType, host, port, portNum, len(addrs), plural, addrs)
 		}
 		result.Iterations++
 	}
