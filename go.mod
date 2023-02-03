@@ -3,7 +3,7 @@ module github.com/fortio/multicurl
 go 1.18
 
 require (
-	fortio.org/fortio v1.40.0
+	fortio.org/fortio v1.40.1
 	github.com/rogpeppe/go-internal v1.9.0
 )
 
