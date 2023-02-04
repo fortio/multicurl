@@ -206,7 +206,7 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
 			log.LogVf("Re-resolving %s host %s", cfg.ResolveType, cfg.host)
 			addrs, err = Resolve(ctx, cfg)
 			if err != nil {
-				return log.FErrf("Unable to resolve %s host %s: %v", cfg.ResolveType, cfg.host, err), result
+				return log.FErrf("Unable to re-resolve %s host %s: %v", cfg.ResolveType, cfg.host, err), result
 			}
 		}
 		result.Iterations++
