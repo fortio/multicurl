@@ -32,7 +32,7 @@ stdout 'User-Agent: fortio.org/multicurl-'
 # positive test, https
 multicurl -loglevel verbose -4 https://debug.fortio.org/foo/bar
 stderr 'resolver ip4,'
-stderr 'V Resolving ip4 host debug.fortio.org port https'
+stderr 'V Resolving ip4 host debug.fortio.org \(port https -> 443\)'
 
 # -6 error
 ! multicurl -6 localhost:9099
@@ -117,7 +117,7 @@ stderr 'F Unable to read payload from file "nosuchfile.txt": open nosuchfile.txt
 
 # ip file error
 ! multicurl -4 -I nosuchfile.txt https://debug.fortio.org
-stderr 'F Can.t get requested ips: open nosuchfile.txt: no such file or directory'
+stderr 'F Unable to resolve ip4 host debug.fortio.org: open nosuchfile.txt: no such file or directory'
 
 # ip file
 multicurl -4 -I ips.txt https://debug.fortio.org
@@ -126,7 +126,7 @@ stderr '18.222.136.83'
 
 # bad ip file
 ! multicurl -4 -I badIps.txt https://debug.fortio.org
-stderr 'F Can.t get requested ips: unable to parse IP "not-an-ip"'
+stderr 'F Unable to resolve ip4 host debug.fortio.org: unable to parse IP "not-an-ip"'
 
 # good ipv6
 ! multicurl -I ipv6.txt http://foo:9099/
@@ -139,9 +139,15 @@ multicurl -4 -I - https://debug.fortio.org
 stderr 'Using stdin for list of IPs to connect to'
 
 # retries
-! multicurl -4 -repeat -1 -repeat-delay 1s -total-timeout 2.5s -expected 301 http://debug.fortio.org
+! multicurl -4 -repeat -1 -repeat-delay 1s -total-timeout 1.9s -expected 301 http://debug.fortio.org
 stderr 'E Interrupted/total timeout reached'
 stderr 'I Total iterations: 2,'
+
+# relookup and maxip
+! multicurl -4 -relookup -n 1 -repeat 10 -repeat-delay 1s -total-timeout 2.9s -expected 301 http://debug.fortio.org
+stderr -count=3 'I Resolved ip4 debug.fortio.org:http to port 80 and 3 addresses .* - keeping first 1$'
+stderr 'E Interrupted/total timeout reached'
+stderr 'I Total iterations: 3,'
 
 -- payloadFile.txt --
 Just a test

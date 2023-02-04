@@ -25,8 +25,6 @@ Use `-4` for ipv4 only, `-6` for ipv6 only, otherwise it'll try all of them.
 Relevant flags (some extra are from fortio library but not used/relevant)
 
 ```
-flags:
-flags:
   -4	Use only IPv4
   -6	Use only IPv6
   -H key:value
@@ -42,8 +40,12 @@ flags:
   -i	Include response headers in output
   -loglevel value
     	loglevel, one of [Debug Verbose Info Warning Error Critical Fatal] (default Info)
+  -n int
+    	Max number of IPs to use/try (0 means all the ones found)
   -o file name pattern
     	Output file name pattern, e.g "out-%.html" where % will be replaced by the ip, default is stdout
+  -relookup
+    	Re-lookup the URL between each repeat
   -repeat int
     	Max number of times to retry on errors if positive, default is 0 (no retry), negative is retry until -total-timeout
   -repeat-delay duration
@@ -56,6 +58,8 @@ flags:
   -version
     	Show full version info and exit.
 ```
+
+Note that `-relookup` works better on CGO_ENABLED=0 built binary, otherwise the OS library caches the results.
 
 See also [multicurl.txtar](multicurl.txtar) for examples (tests)
 

@@ -80,6 +80,8 @@ func Main() int {
 	repeat := flag.Int("repeat", 0,
 		"Max number of times to retry on errors if positive, default is 0 (no retry), negative is retry until -total-timeout")
 	retryDelay := flag.Duration("repeat-delay", 5*time.Second, "Delay between retries")
+	maxIPs := flag.Int("n", 0, "Max number of IPs to use/try (0 means all the ones found)")
+	relookup := flag.Bool("relookup", false, "Re-lookup the URL between each repeat")
 	flag.CommandLine.Usage = func() { usage("") }
 	log.SetFlagDefaultsForClientTools()
 	sV, _, fullV := version.FromBuildInfo()
@@ -119,6 +121,8 @@ func Main() int {
 	config.ExpectedCode = *expected
 	config.MaxRepeat = *repeat
 	config.RepeatDelay = *retryDelay
+	config.MaxIPs = *maxIPs
+	config.ReLookup = *relookup
 	if *data != "" {
 		if config.Method == "" {
 			config.Method = http.MethodPost
