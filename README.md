@@ -25,40 +25,45 @@ Use `-4` for ipv4 only, `-6` for ipv6 only, otherwise it'll try all of them.
 Relevant flags (some extra are from fortio library but not used/relevant)
 
 ```
-  -4	Use only IPv4
-  -6	Use only IPv6
+flags:
+  -4    Use only IPv4
+  -6    Use only IPv6
   -H key:value
-    	Additional http header(s). Multiple key:value pairs can be passed using multiple -H.
+        Additional http header(s). Multiple key:value pairs can be passed using
+multiple -H.
   -I file
-    	IP address file to use instead of resolving the URL, use - for stdin
+        IP address file to use instead of resolving the URL, use - for stdin
   -X string
-    	HTTP method to use, default is GET unless -d is set which defaults to POST
+        HTTP method to use, default is GET unless -d is set which defaults to
+POST
   -d string
-    	Payload to POST, use @filename to read from file
+        Payload to POST, use @filename to read from file
   -expected int
-    	Expected HTTP return code, 0 means any and non 200s will be warning otherwise
-      if set any different code is an error
-  -i	Include response headers in output
+        Expected HTTP return code, 0 means any and non 200s will be warning
+otherwise if set any different code is an error
+  -i    Include response headers in output
   -loglevel value
-    	loglevel, one of [Debug Verbose Info Warning Error Critical Fatal] (default Info)
+        loglevel, one of [Debug Verbose Info Warning Error Critical Fatal]
+(default Info)
   -n int
-    	Max number of IPs to use/try (0 means all the ones found)
+        Max number of IPs to use/try (0 means all the ones found)
   -o file name pattern
-    	Output file name pattern, e.g "out-%.html" where % will be replaced by the ip, default is stdout
+        Output file name pattern, e.g "out-%.html" where % will be replaced by
+the ip, default is stdout
   -relookup
-    	Re-lookup the URL between each repeat
+        Re-lookup the URL between each repeat
   -repeat int
-    	Max number of times to retry on errors if positive, default is 0 (no retry), 
-      negative is retry until -total-timeout
+        Max number of times to retry on errors if positive, default is 0 (no
+retry), negative is retry until -total-timeout
   -repeat-delay duration
-    	Delay between retries (default 5s)
+        Delay between retries (default 5s)
   -request-timeout duration
-    	HTTP method (default 3s)
-  -s	Quiet mode (sets log level to warning quietly)
+        HTTP method (default 3s)
+  -s    Quiet mode (sets log level to warning quietly)
   -total-timeout duration
-    	HTTP method (default 30s)
+        HTTP method (default 30s)
   -version
-    	Show full version info and exit.
+        Show full version info and exit.
 ```
 
 Note that `-relookup` works better on CGO_ENABLED=0 built binary, otherwise the OS library caches the results.
