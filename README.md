@@ -73,7 +73,7 @@ See also [multicurl.txtar](multicurl.txtar) for examples (tests)
 ### Example
 
 ```
- -expected 301 -repeat 2 -n 2 -relookup debug.fortio.org
+$ multicurl -expected 301 -repeat 2 -n 2 -relookup debug.fortio.org
 11:49:20 I Fortio multicurl dev  go1.19.5 arm64 darwin, using resolver ip, GET debug.fortio.org
 11:49:20 I Resolved ip debug.fortio.org:http to port 80 and 6 addresses [18.222.136.83 192.9.142.5 192.9.227.83 2600:1f16:9c6:b400:282c:a766:6cab:4e82 2603:c024:c00a:d144:6663:5896:7efb:fbf3 2603:c024:c00a:d144:7cd0:4951:7106:96b8] - keeping first 2
 11:49:20 E 1: Status 200 "200 OK" from 18.222.136.83
