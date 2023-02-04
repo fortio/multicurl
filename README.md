@@ -73,141 +73,117 @@ See also [multicurl.txtar](multicurl.txtar) for examples (tests)
 ### Example
 
 ```
-$ multicurl -i https://debug.fortio.org
-17:35:52 I Fortio multicurl 1.1.0 h1:LUqSvzZCem9zhawlHnHVBS8ijTCvleQaQn8l7ibugvU= go1.19.5 arm64 darwin, using resolver ip, GET https://debug.fortio.org
-17:35:52 I Resolving ip host debug.fortio.org port https
-17:35:52 I Resolved ip debug.fortio.org:https to port 443 and 6 addresses [2600:1f16:9c6:b400:282c:a766:6cab:4e82 2603:c024:c00a:d144:7cd0:4951:7106:96b8 2603:c024:c00a:d144:230c:a364:9794:317b 192.9.142.5 192.9.227.83 18.222.136.83]
-17:35:52 I 0: Using 2600:1f16:9c6:b400:282c:a766:6cab:4e82
-17:35:52 I 0: DialContext tcp debug.fortio.org:443 -> [2600:1f16:9c6:b400:282c:a766:6cab:4e82]:443
-17:35:52 I 0: Status 200 "200 OK" from 2600:1f16:9c6:b400:282c:a766:6cab:4e82
-HTTP/2.0 200 OK
-Content-Type: text/plain; charset=UTF-8
-Date: Sun, 29 Jan 2023 01:35:52 GMT
+ -expected 301 -repeat 2 -n 2 -relookup debug.fortio.org
+11:49:20 I Fortio multicurl dev  go1.19.5 arm64 darwin, using resolver ip, GET debug.fortio.org
+11:49:20 I Resolved ip debug.fortio.org:http to port 80 and 6 addresses [18.222.136.83 192.9.142.5 192.9.227.83 2600:1f16:9c6:b400:282c:a766:6cab:4e82 2603:c024:c00a:d144:6663:5896:7efb:fbf3 2603:c024:c00a:d144:7cd0:4951:7106:96b8] - keeping first 2
+11:49:20 E 1: Status 200 "200 OK" from 18.222.136.83
+Φορτίο version 1.40.1 h1:D1H+5aOnauTr4WTnopHl1MhSZt/l0Asi3ZEqkpBwT0c= go1.19.5 arm64 linux (in fortio.org/proxy 1.8.1)
+Debug server on a1 up for 37h43m3s
+Request from 216.194.105.159:4496
 
-Φορτίο version 1.40.0 h1:jSDO/jGcyC/qTpMZZ84EZbn9BQawsWM9/RMQ9s6Cn3w= go1.19.5 arm64 linux (in fortio.org/proxy 1.8.0)
-Debug server on a1 up for 22h55m36.7s
-Request from [2600:1700:...ipv6 masked...]:59546 https TLS_AES_128_GCM_SHA256
-
-GET / HTTP/2.0
+GET / HTTP/1.1
 
 headers:
 
 Host: debug.fortio.org
 Accept-Encoding: gzip
-User-Agent: Go-http-client/2.0
+Connection: close
+User-Agent: fortio.org/multicurl-dev
 
 body:
 
 
-17:35:52 I 1: Using 2603:c024:c00a:d144:7cd0:4951:7106:96b8
-17:35:52 I 1: DialContext tcp debug.fortio.org:443 -> [2603:c024:c00a:d144:7cd0:4951:7106:96b8]:443
-17:35:52 I 1: Status 200 "200 OK" from 2603:c024:c00a:d144:7cd0:4951:7106:96b8
-HTTP/2.0 200 OK
-Content-Type: text/plain; charset=UTF-8
-Date: Sun, 29 Jan 2023 01:35:52 GMT
+11:49:20 E 2: Status 200 "200 OK" from 192.9.142.5
+Φορτίο version 1.40.1 h1:D1H+5aOnauTr4WTnopHl1MhSZt/l0Asi3ZEqkpBwT0c= go1.19.5 arm64 linux (in fortio.org/proxy 1.8.1)
+Debug server on oa1 up for 23h55m4.5s
+Request from 216.194.105.159:4497
 
-Φορτίο version 1.40.0 h1:jSDO/jGcyC/qTpMZZ84EZbn9BQawsWM9/RMQ9s6Cn3w= go1.19.5 amd64 linux (in fortio.org/proxy 1.8.0)
-Debug server on l1 up for 22h49m20.5s
-Request from [2600:1700:...ipv6 masked...]]:59548 https TLS_AES_128_GCM_SHA256
-
-GET / HTTP/2.0
+GET / HTTP/1.1
 
 headers:
 
 Host: debug.fortio.org
 Accept-Encoding: gzip
-User-Agent: Go-http-client/2.0
+Connection: close
+User-Agent: fortio.org/multicurl-dev
 
 body:
 
 
-17:35:52 I 2: Using 2603:c024:c00a:d144:230c:a364:9794:317b
-17:35:52 I 2: DialContext tcp debug.fortio.org:443 -> [2603:c024:c00a:d144:230c:a364:9794:317b]:443
-17:35:52 I 2: Status 200 "200 OK" from 2603:c024:c00a:d144:230c:a364:9794:317b
-HTTP/2.0 200 OK
-Content-Type: text/plain; charset=UTF-8
-Date: Sun, 29 Jan 2023 01:35:52 GMT
+11:49:20 E [1] 2 errors (0 warnings)
+11:49:25 I Resolved ip debug.fortio.org:http to port 80 and 6 addresses [18.222.136.83 192.9.142.5 192.9.227.83 2603:c024:c00a:d144:7cd0:4951:7106:96b8 2600:1f16:9c6:b400:282c:a766:6cab:4e82 2603:c024:c00a:d144:6663:5896:7efb:fbf3] - keeping first 2
+11:49:26 E 1: Status 200 "200 OK" from 18.222.136.83
+Φορτίο version 1.40.1 h1:D1H+5aOnauTr4WTnopHl1MhSZt/l0Asi3ZEqkpBwT0c= go1.19.5 arm64 linux (in fortio.org/proxy 1.8.1)
+Debug server on a1 up for 37h43m8.5s
+Request from 216.194.105.159:4624
 
-Φορτίο version 1.40.0 h1:jSDO/jGcyC/qTpMZZ84EZbn9BQawsWM9/RMQ9s6Cn3w= go1.19.5 amd64 linux (in fortio.org/proxy 1.8.0)
-Debug server on l2 up for 22h49m2.2s
-Request from [2600:1700::...ipv6 masked...]]:59549 https TLS_AES_128_GCM_SHA256
-
-GET / HTTP/2.0
+GET / HTTP/1.1
 
 headers:
 
 Host: debug.fortio.org
 Accept-Encoding: gzip
-User-Agent: Go-http-client/2.0
+Connection: close
+User-Agent: fortio.org/multicurl-dev
 
 body:
 
 
-17:35:52 I 3: Using 192.9.142.5
-17:35:52 I 3: DialContext tcp debug.fortio.org:443 -> 192.9.142.5:443
-17:35:52 I 3: Status 200 "200 OK" from 192.9.142.5
-HTTP/2.0 200 OK
-Content-Type: text/plain; charset=UTF-8
-Date: Sun, 29 Jan 2023 01:35:52 GMT
+11:49:26 E 2: Status 200 "200 OK" from 192.9.142.5
+Φορτίο version 1.40.1 h1:D1H+5aOnauTr4WTnopHl1MhSZt/l0Asi3ZEqkpBwT0c= go1.19.5 arm64 linux (in fortio.org/proxy 1.8.1)
+Debug server on oa1 up for 23h55m10s
+Request from 216.194.105.159:4625
 
-Φορτίο version 1.40.0 h1:jSDO/jGcyC/qTpMZZ84EZbn9BQawsWM9/RMQ9s6Cn3w= go1.19.5 amd64 linux (in fortio.org/proxy 1.8.0)
-Debug server on l2 up for 22h49m2.2s
-Request from 99..ipv4-masked...:59550 https TLS_AES_128_GCM_SHA256
-
-GET / HTTP/2.0
+GET / HTTP/1.1
 
 headers:
 
 Host: debug.fortio.org
 Accept-Encoding: gzip
-User-Agent: Go-http-client/2.0
+Connection: close
+User-Agent: fortio.org/multicurl-dev
 
 body:
 
 
-17:35:52 I 4: Using 192.9.227.83
-17:35:52 I 4: DialContext tcp debug.fortio.org:443 -> 192.9.227.83:443
-17:35:52 I 4: Status 200 "200 OK" from 192.9.227.83
-HTTP/2.0 200 OK
-Content-Type: text/plain; charset=UTF-8
-Date: Sun, 29 Jan 2023 01:35:53 GMT
+11:49:26 E [2] 2 errors (0 warnings)
+11:49:31 I Resolved ip debug.fortio.org:http to port 80 and 6 addresses [192.9.227.83 18.222.136.83 192.9.142.5 2600:1f16:9c6:b400:282c:a766:6cab:4e82 2603:c024:c00a:d144:6663:5896:7efb:fbf3 2603:c024:c00a:d144:7cd0:4951:7106:96b8] - keeping first 2
+11:49:31 E 1: Status 200 "200 OK" from 192.9.227.83
+Φορτίο version 1.40.1 h1:D1H+5aOnauTr4WTnopHl1MhSZt/l0Asi3ZEqkpBwT0c= go1.19.5 amd64 linux (in fortio.org/proxy 1.8.1)
+Debug server on ol1 up for 37h36m2.9s
+Request from 216.194.105.159:4784
 
-Φορτίο version 1.40.0 h1:jSDO/jGcyC/qTpMZZ84EZbn9BQawsWM9/RMQ9s6Cn3w= go1.19.5 amd64 linux (in fortio.org/proxy 1.8.0)
-Debug server on l1 up for 22h49m20.7s
-Request from 99..ipv4-masked...:59551 https TLS_AES_128_GCM_SHA256
-
-GET / HTTP/2.0
+GET / HTTP/1.1
 
 headers:
 
 Host: debug.fortio.org
 Accept-Encoding: gzip
-User-Agent: Go-http-client/2.0
+Connection: close
+User-Agent: fortio.org/multicurl-dev
 
 body:
 
 
-17:35:52 I 5: Using 18.222.136.83
-17:35:52 I 5: DialContext tcp debug.fortio.org:443 -> 18.222.136.83:443
-17:35:53 I 5: Status 200 "200 OK" from 18.222.136.83
-HTTP/2.0 200 OK
-Content-Type: text/plain; charset=UTF-8
-Date: Sun, 29 Jan 2023 01:35:53 GMT
+11:49:31 E 2: Status 200 "200 OK" from 18.222.136.83
+Φορτίο version 1.40.1 h1:D1H+5aOnauTr4WTnopHl1MhSZt/l0Asi3ZEqkpBwT0c= go1.19.5 arm64 linux (in fortio.org/proxy 1.8.1)
+Debug server on a1 up for 37h43m14.2s
+Request from 216.194.105.157:4528
 
-Φορτίο version 1.40.0 h1:jSDO/jGcyC/qTpMZZ84EZbn9BQawsWM9/RMQ9s6Cn3w= go1.19.5 arm64 linux (in fortio.org/proxy 1.8.0)
-Debug server on a1 up for 22h55m37.3s
-Request from 99..ipv4-masked...:59552 https TLS_AES_128_GCM_SHA256
-
-GET / HTTP/2.0
+GET / HTTP/1.1
 
 headers:
 
 Host: debug.fortio.org
 Accept-Encoding: gzip
-User-Agent: Go-http-client/2.0
+Connection: close
+User-Agent: fortio.org/multicurl-dev
 
 body:
 
 
-17:35:53 I Total 0 errors (0 warnings)
+11:49:31 E [3] 2 errors (0 warnings)
+11:49:31 E Reached max repeat 2
+11:49:31 I Total iterations: 3, errors: 6, warnings 0
+exit status 2
 ```
