@@ -32,7 +32,7 @@ stdout 'User-Agent: fortio.org/multicurl-'
 # positive test, https
 multicurl -loglevel verbose -4 https://debug.fortio.org/foo/bar
 stderr 'resolver ip4,'
-stderr 'V Resolving ip4 host debug.fortio.org port https'
+stderr 'V Resolving ip4 host debug.fortio.org \(port https -> 443\)'
 
 # -6 error
 ! multicurl -6 localhost:9099
@@ -117,7 +117,7 @@ stderr 'F Unable to read payload from file "nosuchfile.txt": open nosuchfile.txt
 
 # ip file error
 ! multicurl -4 -I nosuchfile.txt https://debug.fortio.org
-stderr 'F Can.t get requested ips: open nosuchfile.txt: no such file or directory'
+stderr 'F Unable to resolve ip4 host debug.fortio.org: open nosuchfile.txt: no such file or directory'
 
 # ip file
 multicurl -4 -I ips.txt https://debug.fortio.org
@@ -126,7 +126,7 @@ stderr '18.222.136.83'
 
 # bad ip file
 ! multicurl -4 -I badIps.txt https://debug.fortio.org
-stderr 'F Can.t get requested ips: unable to parse IP "not-an-ip"'
+stderr 'F Unable to resolve ip4 host debug.fortio.org: unable to parse IP "not-an-ip"'
 
 # good ipv6
 ! multicurl -I ipv6.txt http://foo:9099/

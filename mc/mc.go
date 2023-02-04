@@ -161,7 +161,6 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
 	for {
 		lastIterErrors = 0
 		lastIterWarnings = 0
-		addrs = addrs[:cfg.MaxIPs]
 		for idx, addr := range addrs {
 			// humans start counting at 1
 			nErr, nWarn, status, size := oneRequest(idx+1, cfg, addr, cfg.portNum, req, tr, cli)
@@ -280,10 +279,14 @@ func oneRequest(i int, cfg *Config, addr net.IP, portNum int,
 }
 
 func Plural(i int, noun string) string {
+	return PluralExt(i, noun, "s")
+}
+
+func PluralExt(i int, noun string, ext string) string {
 	if i == 1 {
 		return noun
 	}
-	return noun + "s"
+	return noun + ext
 }
 
 func URLAddScheme(url string) string {
@@ -299,14 +302,21 @@ func URLAddScheme(url string) string {
 	return "http://" + url
 }
 
-func Resolve(ctx context.Context, cfg *Config) (addrs []net.IP, err error) {
+func Resolve(ctx context.Context, cfg *Config) ([]net.IP, error) {
 	if cfg.IPFile != "" {
-		return ReadIPs(cfg.IPFile)
+		addrs, err := ReadIPs(cfg.IPFile)
+		if err != nil {
+			return nil, err // already logged
+		}
+		n := len(addrs)
+		log.Infof("Resolved %s %s:%s to port %d and %d %s %v - from file %s",
+			cfg.ResolveType, cfg.host, cfg.port, cfg.portNum, n, PluralExt(n, "address", "es"), addrs, cfg.IPFile)
+		return addrs, nil
 	}
 	log.LogVf("Resolving %s host %s (port %s -> %d)", cfg.ResolveType, cfg.host, cfg.port, cfg.portNum)
-	addrs, err = ResolveAll(ctx, cfg.host, cfg.ResolveType)
+	addrs, err := ResolveAll(ctx, cfg.host, cfg.ResolveType)
 	if err != nil {
-		return
+		return nil, err
 	}
 	plural := ""
 	if len(addrs) != 1 {
@@ -314,14 +324,14 @@ func Resolve(ctx context.Context, cfg *Config) (addrs []net.IP, err error) {
 	}
 	n := len(addrs)
 	if cfg.MaxIPs > 0 && n > cfg.MaxIPs {
-		log.Infof("Resolved %s %s:%s to port %d and %d address%s %v - keeping first %d",
-			cfg.ResolveType, cfg.host, cfg.port, cfg.portNum, n, plural, addrs, cfg.MaxIPs)
+		log.Infof("Resolved %s %s:%s to port %d and %d %s %v - keeping first %d",
+			cfg.ResolveType, cfg.host, cfg.port, cfg.portNum, n, PluralExt(n, "address", "es"), addrs, cfg.MaxIPs)
 		addrs = addrs[:cfg.MaxIPs]
 	} else {
 		log.Infof("Resolved %s %s:%s to port %d and %d address%s %v",
 			cfg.ResolveType, cfg.host, cfg.port, cfg.portNum, n, plural, addrs)
 	}
-	return
+	return addrs, nil
 }
 
 func ResolveAll(ctx context.Context, host, resolveType string) ([]net.IP, error) {
