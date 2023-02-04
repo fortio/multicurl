@@ -6,7 +6,7 @@ Fetches a URL from all the IPs of a given host. Optionally repeat until an expec
 
 ## Installation
 ```shell
-go install github.com/fortio/multicurl@latest
+CGO_ENABLED=0 go install github.com/fortio/multicurl@latest
 ```
 
 Or the [binary releases](https://github.com/fortio/multicurl/releases)
