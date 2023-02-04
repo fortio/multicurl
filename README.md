@@ -36,7 +36,8 @@ Relevant flags (some extra are from fortio library but not used/relevant)
   -d string
     	Payload to POST, use @filename to read from file
   -expected int
-    	Expected HTTP return code, 0 means any and non 200s will be warning otherwise if set any different code is an error
+    	Expected HTTP return code, 0 means any and non 200s will be warning otherwise
+      if set any different code is an error
   -i	Include response headers in output
   -loglevel value
     	loglevel, one of [Debug Verbose Info Warning Error Critical Fatal] (default Info)
@@ -47,7 +48,8 @@ Relevant flags (some extra are from fortio library but not used/relevant)
   -relookup
     	Re-lookup the URL between each repeat
   -repeat int
-    	Max number of times to retry on errors if positive, default is 0 (no retry), negative is retry until -total-timeout
+    	Max number of times to retry on errors if positive, default is 0 (no retry), 
+      negative is retry until -total-timeout
   -repeat-delay duration
     	Delay between retries (default 5s)
   -request-timeout duration
