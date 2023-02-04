@@ -139,7 +139,7 @@ multicurl -4 -I - https://debug.fortio.org
 stderr 'Using stdin for list of IPs to connect to'
 
 # retries
-! multicurl -4 -repeat -1 -repeat-delay 1s -total-timeout 2.5s -expected 301 http://debug.fortio.org
+! multicurl -4 -repeat -1 -repeat-delay 1s -total-timeout 1.9s -expected 301 http://debug.fortio.org
 stderr 'E Interrupted/total timeout reached'
 stderr 'I Total iterations: 2,'
 
