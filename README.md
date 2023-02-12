@@ -5,15 +5,22 @@
 Fetches a URL from all the IPs of a given host. Optionally repeat until an expected result code is obtained from all addresses.
 
 ## Installation
+
+If you have a recent go installation already:
 ```shell
 CGO_ENABLED=0 go install github.com/fortio/multicurl@latest
 ```
 
-Or the [binary releases](https://github.com/fortio/multicurl/releases)
+Or get on of the [binary releases](https://github.com/fortio/multicurl/releases)
 
 Or using the docker image
 ```shell
 docker run fortio/multicurl http://debug.fortio.org/test
+```
+
+Or using brew (mac)
+```shell
+brew install fortio/tap/multicurl
 ```
 
 ## Usage
