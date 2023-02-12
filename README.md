@@ -5,15 +5,22 @@
 Fetches a URL from all the IPs of a given host. Optionally repeat until an expected result code is obtained from all addresses.
 
 ## Installation
+
+If you have a recent go installation already:
 ```shell
 CGO_ENABLED=0 go install github.com/fortio/multicurl@latest
 ```
 
-Or the [binary releases](https://github.com/fortio/multicurl/releases)
+Or get on of the [binary releases](https://github.com/fortio/multicurl/releases)
 
 Or using the docker image
 ```shell
 docker run fortio/multicurl http://debug.fortio.org/test
+```
+
+Or using brew (mac)
+```shell
+brew install fortio/tap/multicurl
 ```
 
 ## Usage
@@ -22,8 +29,10 @@ multicurl https://debug.fortio.org/test
 
 Use `-4` for ipv4 only, `-6` for ipv6 only, otherwise it'll try all of them.
 
-Relevant flags (some extra are from fortio library but not used/relevant)
 
+<!-- generate using
+go run . -h 2>&1 | expand | fold -s | sed -e "s/ $//" -e "s/</\&lt;/"
+-->
 ```
 flags:
   -4    Use only IPv4
@@ -42,9 +51,8 @@ POST
         Expected HTTP return code, 0 means any and non 200s will be warning
 otherwise if set any different code is an error
   -i    Include response headers in output
-  -loglevel value
-        loglevel, one of [Debug Verbose Info Warning Error Critical Fatal]
-(default Info)
+  -loglevel level
+        logging level, one of [Debug Verbose Info Warning Error Critical Fatal]
   -n int
         Max number of IPs to use/try (0 means all the ones found)
   -o file name pattern
