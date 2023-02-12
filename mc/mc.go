@@ -33,8 +33,8 @@ import (
 	"strings"
 	"time"
 
-	"fortio.org/fortio/log"
-	"fortio.org/fortio/version"
+	"fortio.org/log"
+	"fortio.org/version"
 )
 
 // Config object for MultiCurl to avoid passing too many parameters.

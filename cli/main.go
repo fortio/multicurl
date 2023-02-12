@@ -22,8 +22,8 @@ import (
 	"os"
 	"time"
 
-	"fortio.org/fortio/log"
-	"fortio.org/fortio/version"
+	"fortio.org/log"
+	"fortio.org/version"
 	"github.com/fortio/multicurl/mc"
 )
 
@@ -83,7 +83,8 @@ func Main() int {
 	maxIPs := flag.Int("n", 0, "Max number of IPs to use/try (0 means all the ones found)")
 	relookup := flag.Bool("relookup", false, "Re-lookup the URL between each repeat")
 	flag.CommandLine.Usage = func() { usage("") }
-	log.SetFlagDefaultsForClientTools()
+	log.SetDefaultsForClientTools()
+	log.LoggerStaticFlagSetup()
 	sV, _, fullV := version.FromBuildInfo()
 	shortV = sV
 	flag.Parse()
