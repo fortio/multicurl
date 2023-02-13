@@ -31,38 +31,36 @@ Use `-4` for ipv4 only, `-6` for ipv6 only, otherwise it'll try all of them.
 
 
 <!-- generate using
-go run . -h 2>&1 | expand | fold -s | sed -e "s/ $//" -e "s/</\&lt;/"
+go run . -h 2>&1 | expand | fold -s -w 92 | sed -e "s/ $//" -e "s/</\&lt;/"
 -->
 ```
 flags:
   -4    Use only IPv4
   -6    Use only IPv6
   -H key:value
-        Additional http header(s). Multiple key:value pairs can be passed using
-multiple -H.
+        Additional http header(s). Multiple key:value pairs can be passed using multiple -H.
   -I file
         IP address file to use instead of resolving the URL, use - for stdin
   -X string
-        HTTP method to use, default is GET unless -d is set which defaults to
-POST
+        HTTP method to use, default is GET unless -d is set which defaults to POST
   -d string
         Payload to POST, use @filename to read from file
   -expected int
-        Expected HTTP return code, 0 means any and non 200s will be warning
-otherwise if set any different code is an error
+        Expected HTTP return code, 0 means any and non 200s will be warning otherwise if
+set any different code is an error
   -i    Include response headers in output
   -loglevel level
-        logging level, one of [Debug Verbose Info Warning Error Critical Fatal]
+        log level, one of [Debug Verbose Info Warning Error Critical Fatal] (default Info)
   -n int
         Max number of IPs to use/try (0 means all the ones found)
   -o file name pattern
-        Output file name pattern, e.g "out-%.html" where % will be replaced by
-the ip, default is stdout
+        Output file name pattern, e.g "out-%.html" where % will be replaced by the ip,
+default is stdout
   -relookup
         Re-lookup the URL between each repeat
   -repeat int
-        Max number of times to retry on errors if positive, default is 0 (no
-retry), negative is retry until -total-timeout
+        Max number of times to retry on errors if positive, default is 0 (no retry),
+negative is retry until -total-timeout
   -repeat-delay duration
         Delay between retries (default 5s)
   -request-timeout duration
