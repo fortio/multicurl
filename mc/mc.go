@@ -33,6 +33,7 @@ import (
 	"strings"
 	"time"
 
+	"fortio.org/cli"
 	"fortio.org/log"
 	"fortio.org/version"
 )
@@ -148,7 +149,7 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
 	}
 	tr := http.DefaultTransport.(*http.Transport).Clone()
 	tr.DisableKeepAlives = true
-	cli := http.Client{
+	hcli := http.Client{
 		Transport: tr,
 		Timeout:   cfg.RequestTimeout,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -163,7 +164,7 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
 		lastIterWarnings = 0
 		for idx, addr := range addrs {
 			// humans start counting at 1
-			nErr, nWarn, status, size := oneRequest(idx+1, cfg, addr, cfg.portNum, req, tr, cli)
+			nErr, nWarn, status, size := oneRequest(idx+1, cfg, addr, cfg.portNum, req, tr, hcli)
 			lastIterErrors += nErr
 			lastIterWarnings += nWarn
 			aStr := addr.String()
@@ -185,8 +186,8 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
 			level = log.Error
 		}
 		log.Logf(level, "[%d] %d %s (%d %s)", result.Iterations,
-			lastIterErrors, Plural(lastIterErrors, "error"),
-			lastIterWarnings, Plural(lastIterWarnings, "warning"))
+			lastIterErrors, cli.Plural(lastIterErrors, "error"),
+			lastIterWarnings, cli.Plural(lastIterWarnings, "warning"))
 		if lastIterErrors == 0 {
 			break
 		}
@@ -278,17 +279,6 @@ func oneRequest(i int, cfg *Config, addr net.IP, portNum int,
 	return numErrors, numWarnings, resp.StatusCode, len(data)
 }
 
-func Plural(i int, noun string) string {
-	return PluralExt(i, noun, "s")
-}
-
-func PluralExt(i int, noun string, ext string) string {
-	if i == 1 {
-		return noun
-	}
-	return noun + ext
-}
-
 func URLAddScheme(url string) string {
 	log.LogVf("URLSchemeCheck %q", url)
 	lcURL := strings.ToLower(url)
@@ -310,7 +300,7 @@ func Resolve(ctx context.Context, cfg *Config) ([]net.IP, error) {
 		}
 		n := len(addrs)
 		log.Infof("Resolved %s %s:%s to port %d and %d %s %v - from file %s",
-			cfg.ResolveType, cfg.host, cfg.port, cfg.portNum, n, PluralExt(n, "address", "es"), addrs, cfg.IPFile)
+			cfg.ResolveType, cfg.host, cfg.port, cfg.portNum, n, cli.PluralExt(n, "address", "es"), addrs, cfg.IPFile)
 		return addrs, nil
 	}
 	log.LogVf("Resolving %s host %s (port %s -> %d)", cfg.ResolveType, cfg.host, cfg.port, cfg.portNum)
@@ -318,18 +308,14 @@ func Resolve(ctx context.Context, cfg *Config) ([]net.IP, error) {
 	if err != nil {
 		return nil, err
 	}
-	plural := ""
-	if len(addrs) != 1 {
-		plural = "es"
-	}
 	n := len(addrs)
 	if cfg.MaxIPs > 0 && n > cfg.MaxIPs {
 		log.Infof("Resolved %s %s:%s to port %d and %d %s %v - keeping first %d",
-			cfg.ResolveType, cfg.host, cfg.port, cfg.portNum, n, PluralExt(n, "address", "es"), addrs, cfg.MaxIPs)
+			cfg.ResolveType, cfg.host, cfg.port, cfg.portNum, n, cli.PluralExt(n, "address", "es"), addrs, cfg.MaxIPs)
 		addrs = addrs[:cfg.MaxIPs]
 	} else {
-		log.Infof("Resolved %s %s:%s to port %d and %d address%s %v",
-			cfg.ResolveType, cfg.host, cfg.port, cfg.portNum, n, plural, addrs)
+		log.Infof("Resolved %s %s:%s to port %d and %d %s %v",
+			cfg.ResolveType, cfg.host, cfg.port, cfg.portNum, n, cli.PluralExt(n, "address", "es"), addrs)
 	}
 	return addrs, nil
 }

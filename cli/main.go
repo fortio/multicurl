@@ -17,13 +17,12 @@ package cli
 import (
 	"context"
 	"flag"
-	"fmt"
 	"net/http"
 	"os"
 	"time"
 
+	"fortio.org/cli"
 	"fortio.org/log"
-	"fortio.org/version"
 	"github.com/fortio/multicurl/mc"
 )
 
@@ -40,22 +39,7 @@ func (f *headersFlagList) Set(value string) error {
 
 // -- end of functions for -H support
 
-var (
-	fullVersion = flag.Bool("version", false, "Show full version info and exit.")
-	shortV      string
-	config      = mc.NewConfig()
-)
-
-func usage(msg string, args ...any) {
-	_, _ = fmt.Fprintf(os.Stderr, "Fortio multicurl %s usage:\n\t%s [flags] url\nflags:\n",
-		shortV,
-		os.Args[0])
-	flag.PrintDefaults()
-	if msg != "" {
-		fmt.Fprintf(os.Stderr, msg, args...)
-		fmt.Fprintln(os.Stderr)
-	}
-}
+var config = mc.NewConfig()
 
 // Main is the main function for the multicurl tool so it can be called from testscript.
 // Note that we could use the (new in 1.39) log.Fatalf that doesn't panic for cli tools but
@@ -67,7 +51,6 @@ func Main() int {
 	method := flag.String("X", "", "HTTP method to use, default is GET unless -d is set which defaults to POST")
 	totalTimeout := flag.Duration("total-timeout", 30*time.Second, "HTTP method")
 	requestTimeout := flag.Duration("request-timeout", 3*time.Second, "HTTP method")
-	quietFlag := flag.Bool("s", false, "Quiet mode (sets log level to warning quietly)")
 	var headersFlags headersFlagList
 	flag.Var(&headersFlags, "H",
 		"Additional http header(s). Multiple `key:value` pairs can be passed using multiple -H.")
@@ -82,19 +65,10 @@ func Main() int {
 	retryDelay := flag.Duration("repeat-delay", 5*time.Second, "Delay between retries")
 	maxIPs := flag.Int("n", 0, "Max number of IPs to use/try (0 means all the ones found)")
 	relookup := flag.Bool("relookup", false, "Re-lookup the URL between each repeat")
-	flag.CommandLine.Usage = func() { usage("") }
-	log.SetDefaultsForClientTools()
-	log.LoggerStaticFlagSetup()
-	sV, _, fullV := version.FromBuildInfo()
-	shortV = sV
-	flag.Parse()
-	if *quietFlag {
-		log.SetLogLevelQuiet(log.Warning)
-	}
-	if *fullVersion {
-		fmt.Print(fullV)
-		return 0
-	}
+	cli.Config.ProgramName = "Fortio multicurl"
+	cli.Config.ArgsHelp = "url"
+	cli.Config.MinArgs = 1
+	cli.Main()
 	resolveType := "ip"
 	if !(*ipv4 && *ipv6) {
 		if *ipv4 {
@@ -104,12 +78,7 @@ func Main() int {
 			resolveType = "ip6"
 		}
 	}
-	numArgs := len(flag.Args())
-	if numArgs != 1 {
-		usage("Need 1 argument (url), got %d (%v)", numArgs, flag.Args())
-		return 1
-	}
-	url := flag.Args()[0]
+	url := flag.Arg(0)
 	ctx, cncl := context.WithTimeout(context.Background(), *totalTimeout)
 	defer cncl()
 	config.RequestTimeout = *requestTimeout
