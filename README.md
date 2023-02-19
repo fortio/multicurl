@@ -31,7 +31,7 @@ Use `-4` for ipv4 only, `-6` for ipv6 only, otherwise it'll try all of them.
 
 
 <!-- generate using
-go run . -h 2>&1 | expand | fold -s -w 92 | sed -e "s/ $//" -e "s/</\&lt;/"
+go run . help | expand | fold -s -w 92 | sed -e "s/ $//" -e "s/</\&lt;/"
 -->
 ```
 flags:
@@ -56,6 +56,8 @@ set any different code is an error
   -o file name pattern
         Output file name pattern, e.g "out-%.html" where % will be replaced by the ip,
 default is stdout
+  -quiet
+        Quiet mode, sets log level to warning
   -relookup
         Re-lookup the URL between each repeat
   -repeat int
@@ -65,11 +67,8 @@ negative is retry until -total-timeout
         Delay between retries (default 5s)
   -request-timeout duration
         HTTP method (default 3s)
-  -s    Quiet mode (sets log level to warning quietly)
   -total-timeout duration
         HTTP method (default 30s)
-  -version
-        Show full version info and exit.
 ```
 
 Note that `-relookup` works better on CGO_ENABLED=0 built binary, otherwise the OS library caches the results.

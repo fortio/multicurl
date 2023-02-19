@@ -3,10 +3,15 @@
 # Basic usage test
 ! multicurl
 ! stdout .
-stderr 'Need 1 argument'
+stderr 'Exactly 1 argument expected, got 0'
 
-# -version
-multicurl -version
+# version
+multicurl version
+stdout 'dev'
+! stderr .
+
+# buildinfo
+multicurl buildinfo
 stdout 'dev  go'
 ! stderr .
 
@@ -59,8 +64,8 @@ stderr 'Status 303 '
 ! multicurl http://foo:90000/
 stderr 'F Unable to resolve port "90000": address 90000: invalid port'
 
-# -s mode
-multicurl -4 -s http://demo.fortio.org/x
+# -quiet mode (formerly -s)
+multicurl -4 -quiet http://demo.fortio.org/x
 ! stderr 'I Resolving'
 stderr 'W \[1\] 0 errors \(2 warnings\)'
 
