@@ -65,9 +65,9 @@ func Main() int {
 	retryDelay := flag.Duration("repeat-delay", 5*time.Second, "Delay between retries")
 	maxIPs := flag.Int("n", 0, "Max number of IPs to use/try (0 means all the ones found)")
 	relookup := flag.Bool("relookup", false, "Re-lookup the URL between each repeat")
-	cli.Config.ProgramName = "Fortio multicurl"
-	cli.Config.ArgsHelp = "url"
-	cli.Config.MinArgs = 1
+	cli.ProgramName = "Fortio multicurl"
+	cli.ArgsHelp = "url"
+	cli.MinArgs = 1
 	cli.Main()
 	resolveType := "ip"
 	if !(*ipv4 && *ipv6) {
