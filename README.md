@@ -44,6 +44,8 @@ flags:
         IP address file to use instead of resolving the URL, use - for stdin
   -X string
         HTTP method to use, default is GET unless -d is set which defaults to POST
+  -cacert Path
+        Path to a custom CA certificate file to use instead of system ones.
   -cert-expiry days
         Certificate expiry error threshold in days (default 7)
   -d string
@@ -52,6 +54,8 @@ flags:
         Expected HTTP return code, 0 means any and non 200s will be warning otherwise if
 set any different code is an error
   -i    Include response headers in output
+  -insecure
+        Skip verification of server certificate (insecure TLS)
   -loglevel level
         log level, one of [Debug Verbose Info Warning Error Critical Fatal] (default Info)
   -n int
@@ -60,7 +64,7 @@ set any different code is an error
         Output file name pattern, e.g "out-%.html" where % will be replaced by the ip,
 default is stdout
   -quiet
-        Quiet mode, sets log level to warning
+        Quiet mode, sets loglevel to Error (quietly) to reduces the output
   -relookup
         Re-lookup the URL between each repeat
   -repeat int

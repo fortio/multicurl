@@ -21,6 +21,8 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"io"
@@ -75,6 +77,10 @@ type Config struct {
 	ReLookup bool
 	// Cert expiration error threshold (if a cert is found expiring sooner than this).
 	CertExpiryError time.Duration
+	// Path of an alternate CA file to use for TLS validation (instead of system).
+	CAFile string
+	// Insecure will continue despite certificate validation errors.
+	Insecure bool
 	// extracted host
 	host string
 	// extracted port string
@@ -156,6 +162,14 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
 	}
 	tr := http.DefaultTransport.(*http.Transport).Clone()
 	tr.DisableKeepAlives = true
+	ca, err := GetCA(cfg.CAFile)
+	if err != nil {
+		return log.FErrf("%s", err), result
+	}
+	tr.TLSClientConfig = &tls.Config{
+		InsecureSkipVerify: cfg.Insecure,
+		RootCAs:            ca,
+	}
 	hcli := http.Client{
 		Transport: tr,
 		Timeout:   cfg.RequestTimeout,
@@ -216,13 +230,28 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
 		}
 		result.Iterations++
 	}
-	if !LogCertExpiry(cfg, &result) {
+	if !checkCertExpiry(cfg, &result) {
 		lastIterErrors++
 	}
 	return lastIterErrors, result
 }
 
-func LogCertExpiry(cfg *Config, result *ResultStats) (good bool) {
+func GetCA(caFile string) (*x509.CertPool, error) {
+	if caFile == "" {
+		return nil, nil // default/system ones
+	}
+	caCertPool := x509.NewCertPool()
+	// Load CA cert from file
+	caCert, err := os.ReadFile(caFile)
+	ok := caCertPool.AppendCertsFromPEM(caCert)
+	if err != nil || !ok { // merge the two errors, mostly for coverage
+		return nil, fmt.Errorf("can't read CA file: %w", err)
+	}
+	return caCertPool, nil
+}
+
+// checkCertExpiry returns true if expiry is ok (below error threshold).
+func checkCertExpiry(cfg *Config, result *ResultStats) (good bool) {
 	good = true
 	if result.ShortestCertExpiry.IsZero() {
 		return
@@ -427,8 +456,9 @@ func (cfg *Config) AddAndValidateExtraHeader(hdr string) error {
 
 func NewConfig() *Config {
 	cfg := Config{
-		Headers:     make(http.Header, 1),
-		RepeatDelay: 5 * time.Second,
+		Headers:         make(http.Header, 1),
+		RepeatDelay:     5 * time.Second,
+		CertExpiryError: Dur(7), // 7 days default to complain about cert expiry
 	}
 	cfg.Headers.Set("User-Agent", "fortio.org/multicurl-"+libShortVersion)
 	return &cfg
@@ -476,6 +506,12 @@ func ReadIPs(filename string) ([]net.IP, error) {
 	return addrs, nil
 }
 
+// Days returns the number of days in the duration (floating point).
 func Days(d time.Duration) float64 {
 	return d.Seconds() / 86400.
+}
+
+// Dur returns a duration corresponding to the number of days passed.
+func Dur(days float64) time.Duration {
+	return time.Duration(days * 24 * float64(time.Hour))
 }

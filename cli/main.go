@@ -65,7 +65,11 @@ func Main() int {
 	retryDelay := flag.Duration("repeat-delay", 5*time.Second, "Delay between retries")
 	maxIPs := flag.Int("n", 0, "Max number of IPs to use/try (0 means all the ones found)")
 	relookup := flag.Bool("relookup", false, "Re-lookup the URL between each repeat")
-	expiryThreshold := flag.Int("cert-expiry", 7, "Certificate expiry error threshold in `days`")
+	expiryThreshold := flag.Float64("cert-expiry", 7, "Certificate expiry error threshold in `days`")
+	caCertFlag := flag.String("cacert", "",
+		"`Path` to a custom CA certificate file to use instead of system ones.")
+	insecure := flag.Bool("insecure", false, "Skip verification of server certificate (insecure TLS)")
+
 	cli.ProgramName = "Fortio multicurl"
 	cli.ArgsHelp = "url"
 	cli.MinArgs = 1
@@ -94,7 +98,9 @@ func Main() int {
 	config.RepeatDelay = *retryDelay
 	config.MaxIPs = *maxIPs
 	config.ReLookup = *relookup
-	config.CertExpiryError = time.Duration(float64(*expiryThreshold) * 24 * float64(time.Hour))
+	config.CertExpiryError = mc.Dur(*expiryThreshold)
+	config.Insecure = *insecure
+	config.CAFile = *caCertFlag
 	if *data != "" {
 		if config.Method == "" {
 			config.Method = http.MethodPost
