@@ -179,6 +179,9 @@ exec sh -c 'openssl s_client -showcerts -servername self-signed.badssl.com -conn
 multicurl -4 -cacert test.ca https://self-signed.badssl.com/
 stderr 'I Certificate "CN=..badssl.com'
 
+# bad client cert path
+! multicurl -4 -cert nosuchfile.crt -key nosuchfile.key https://debug.fortio.org/
+stderr 'F LoadX509KeyPair error for cert nosuchfile.crt / key nosuchfile.key: open nosuchfile.crt: no such file or directory'
 
 -- payloadFile.txt --
 Just a test
