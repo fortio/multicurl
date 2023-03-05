@@ -199,24 +199,27 @@ exit status 2
 
 #### Certificate informations
 
+```bash
+% multicurl -4 -cert-expiry 60 https://debug.fortio.org > /dev/null
 ```
-% multicurl -4 -expiry-warning 60 https://debug.fortio.org > /dev/null
-
-12:05:20 I Fortio multicurl dev  go1.19.6 arm64 darwin, using resolver ip4, GET https://debug.fortio.org
-12:05:20 I Resolved ip4 debug.fortio.org:https to port 443 and 3 addresses [192.9.142.5 192.9.227.83 18.222.136.83]
-12:05:20 I 1: Status 200 "200 OK" from 192.9.142.5
-12:05:20 I Certificate "CN=debug.fortio.org" expires in 52 days
-12:05:20 I Certificate "CN=R3,O=Let's Encrypt,C=US" expires in 925 days
-12:05:20 I Certificate "CN=ISRG Root X1,O=Internet Security Research Group,C=US" expires in 575 days
-12:05:20 I 2: Status 200 "200 OK" from 192.9.227.83
-12:05:20 I Certificate "CN=debug.fortio.org" expires in 52 days
-12:05:20 I Certificate "CN=R3,O=Let's Encrypt,C=US" expires in 925 days
-12:05:20 I Certificate "CN=ISRG Root X1,O=Internet Security Research Group,C=US" expires in 575 days
-12:05:20 I 3: Status 200 "200 OK" from 18.222.136.83
-12:05:20 I Certificate "CN=debug.fortio.org" expires in 51 days
-12:05:20 I Certificate "CN=R3,O=Let's Encrypt,C=US" expires in 925 days
-12:05:20 I Certificate "CN=ISRG Root X1,O=Internet Security Research Group,C=US" expires in 575 days
-12:05:20 I [1] 0 errors (0 warnings)
-12:05:20 W Shortest cert expiry is 2023-04-26 02:13:27 +0000 UTC (51.3 days from now)
-12:05:20 I Total iterations: 1, errors: 0, warnings 0
+Yields
+```
+12:46:54 I Fortio multicurl dev  go1.19.6 arm64 darwin, using resolver ip4, GET https://debug.fortio.org
+12:46:55 I Resolved ip4 debug.fortio.org:https to port 443 and 3 addresses [192.9.142.5 18.222.136.83 192.9.227.83]
+12:46:55 I 1: Status 200 "200 OK" from 192.9.142.5
+12:46:55 I Certificate "CN=debug.fortio.org" expires in 52 days
+12:46:55 I Certificate "CN=R3,O=Let's Encrypt,C=US" expires in 925 days
+12:46:55 I Certificate "CN=ISRG Root X1,O=Internet Security Research Group,C=US" expires in 575 days
+12:46:55 I 2: Status 200 "200 OK" from 18.222.136.83
+12:46:55 I Certificate "CN=debug.fortio.org" expires in 51 days
+12:46:55 I Certificate "CN=R3,O=Let's Encrypt,C=US" expires in 925 days
+12:46:55 I Certificate "CN=ISRG Root X1,O=Internet Security Research Group,C=US" expires in 575 days
+12:46:55 I 3: Status 200 "200 OK" from 192.9.227.83
+12:46:55 I Certificate "CN=debug.fortio.org" expires in 52 days
+12:46:55 I Certificate "CN=R3,O=Let's Encrypt,C=US" expires in 925 days
+12:46:55 I Certificate "CN=ISRG Root X1,O=Internet Security Research Group,C=US" expires in 575 days
+12:46:55 I [1] 0 errors (0 warnings)
+12:46:55 E Shortest cert expiry is 2023-04-26 02:13:27 +0000 UTC (51.2 days from now)
+12:46:55 I Total iterations: 1, errors: 0, warnings 0
+exit status 1
 ```
