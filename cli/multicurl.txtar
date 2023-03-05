@@ -59,8 +59,9 @@ stderr 'Resolved ip '
 stderr 'I Resolved ip localhost:9099 to port 9099 and 2 addresses \[::1 127.0.0.1\]'
 
 # resolve failure
-! multicurl doesntexist.fortio.org
+! multicurl -quiet doesntexist.fortio.org
 stderr 'E Unable to lookup "doesntexist.fortio.org": lookup doesntexist.fortio.org: no such host'
+! stderr 'I Total iterations'
 
 # redirect
 multicurl -4 http://demo.fortio.org/x
@@ -71,8 +72,8 @@ stderr 'Status 303 '
 ! multicurl http://foo:90000/
 stderr 'F Unable to resolve port "90000": address 90000: invalid port'
 
-# -quiet mode (formerly -s)
-multicurl -4 -quiet http://demo.fortio.org/x
+# -quiet mode (formerly -s) - not that (cli) -quiet suppress warnings now too
+multicurl -4 -loglevel warning http://demo.fortio.org/x
 ! stderr 'I Resolving'
 stderr 'W \[1\] 0 errors \(2 warnings\)'
 
