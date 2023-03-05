@@ -177,7 +177,7 @@ stderr 'F can.t read CA file: open nosuchfile: no such file or directory'
 # get the server cert
 exec sh -c 'openssl s_client -showcerts -servername self-signed.badssl.com -connect self-signed.badssl.com:443 </dev/null | openssl x509 > test.ca'
 multicurl -4 -cacert test.ca https://self-signed.badssl.com/
-stderr 'I Certificate "CN=*.badssl.com'
+stderr 'I Certificate "CN=..badssl.com'
 
 
 -- payloadFile.txt --
