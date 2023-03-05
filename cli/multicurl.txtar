@@ -162,6 +162,19 @@ stderr -count=3 'I Resolved ip4 debug.fortio.org:http to port 80 and 3 addresses
 stderr 'E Interrupted/total timeout reached'
 stderr 'I Total iterations: 3,'
 
+# invalid cert
+! multicurl -4 https://untrusted-root.badssl.com/
+stderr 'E 1: Error fetching.* Get "https://untrusted-root.badssl.com/": x509: certificate signed by unknown authority'
+
+# invalid cert with -insecure
+multicurl -4 -k https://untrusted-root.badssl.com/
+stderr 'I Certificate "CN=BadSSL Untrusted Root Certificate Authority'
+
+# no such ca-cert file
+! multicurl -4 -cacert nosuchfile https://debug.fortio.org/
+stderr 'F can.t read CA file: open nosuchfile: no such file or directory'
+
+
 -- payloadFile.txt --
 Just a test
 of payload
