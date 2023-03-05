@@ -35,9 +35,16 @@ stderr 'Assuming http:// on missing scheme for "debug.fortio.org"'
 stdout 'User-Agent: fortio.org/multicurl-'
 
 # positive test, https
-multicurl -loglevel verbose -4 https://debug.fortio.org/foo/bar
+! multicurl -loglevel verbose -4 -cert-expiry 365 https://debug.fortio.org/foo/bar
 stderr 'resolver ip4,'
-stderr 'V Resolving ip4 host debug.fortio.org \(port https -> 443\)'
+stderr ' V Resolving ip4 host debug.fortio.org \(port https -> 443\)'
+stderr ' E Shortest cert expiry is '
+
+# no expiry warning (info) with the default 7 days
+multicurl -4 https://debug.fortio.org/
+stderr ' I Shortest cert expiry is '
+
+
 
 # -6 error
 ! multicurl -6 localhost:9099
@@ -52,8 +59,9 @@ stderr 'Resolved ip '
 stderr 'I Resolved ip localhost:9099 to port 9099 and 2 addresses \[::1 127.0.0.1\]'
 
 # resolve failure
-! multicurl doesntexist.fortio.org
+! multicurl -quiet doesntexist.fortio.org
 stderr 'E Unable to lookup "doesntexist.fortio.org": lookup doesntexist.fortio.org: no such host'
+! stderr 'I Total iterations'
 
 # redirect
 multicurl -4 http://demo.fortio.org/x
@@ -64,8 +72,8 @@ stderr 'Status 303 '
 ! multicurl http://foo:90000/
 stderr 'F Unable to resolve port "90000": address 90000: invalid port'
 
-# -quiet mode (formerly -s)
-multicurl -4 -quiet http://demo.fortio.org/x
+# -quiet mode (formerly -s) - not that (cli) -quiet suppress warnings now too
+multicurl -4 -loglevel warning http://demo.fortio.org/x
 ! stderr 'I Resolving'
 stderr 'W \[1\] 0 errors \(2 warnings\)'
 

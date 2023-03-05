@@ -73,12 +73,16 @@ type Config struct {
 	MaxIPs int
 	// Re-Lookup between iterations. False by default. doesn't apply if IPFile is set.
 	ReLookup bool
+	// Cert expiration error threshold (if a cert is found expiring sooner than this).
+	CertExpiryError time.Duration
 	// extracted host
 	host string
 	// extracted port string
 	port string
 	// extracted port int
 	portNum int
+	// now (at start)
+	now time.Time
 }
 
 // ResultStats is the details of the MultCurl run when any request is made at all.
@@ -95,6 +99,8 @@ type ResultStats struct {
 	Sizes map[string]int
 	// Iterations done
 	Iterations int
+	// Shortest certificate expiration found
+	ShortestCertExpiry time.Time
 }
 
 var (
@@ -110,6 +116,7 @@ func init() {
 // Returns 0 if all is successful, the number of errors otherwise.
 // ResultStats is the details of the run (see ResultStats).
 func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
+	cfg.now = time.Now()
 	log.Infof("Fortio multicurl %s, using resolver %s, %s %s", libLongVersion, cfg.ResolveType, cfg.Method, cfg.URL)
 	result := ResultStats{
 		Codes: make(map[string]int),
@@ -164,7 +171,7 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
 		lastIterWarnings = 0
 		for idx, addr := range addrs {
 			// humans start counting at 1
-			nErr, nWarn, status, size := oneRequest(idx+1, cfg, addr, cfg.portNum, req, tr, hcli)
+			nErr, nWarn := oneRequest(idx+1, cfg, &result, addr, req, tr, hcli)
 			lastIterErrors += nErr
 			lastIterWarnings += nWarn
 			aStr := addr.String()
@@ -172,9 +179,6 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
 				// only save the addresses list once
 				result.Addresses = append(result.Addresses, aStr)
 			}
-			// will be the last iteration's results
-			result.Codes[aStr] = status
-			result.Sizes[aStr] = size
 		}
 		result.Errors += lastIterErrors
 		result.Warnings += lastIterWarnings
@@ -212,12 +216,30 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
 		}
 		result.Iterations++
 	}
+	if !LogCertExpiry(cfg, &result) {
+		lastIterErrors++
+	}
 	return lastIterErrors, result
 }
 
-func oneRequest(i int, cfg *Config, addr net.IP, portNum int,
+func LogCertExpiry(cfg *Config, result *ResultStats) (good bool) {
+	good = true
+	if result.ShortestCertExpiry.IsZero() {
+		return
+	}
+	expiry := result.ShortestCertExpiry.Sub(cfg.now)
+	level := log.Info
+	if expiry < cfg.CertExpiryError {
+		level = log.Error
+		good = false
+	}
+	log.Logf(level, "Shortest cert expiry is %s (%.1f days from now)", result.ShortestCertExpiry, Days(expiry))
+	return
+}
+
+func oneRequest(i int, cfg *Config, result *ResultStats, addr net.IP,
 	req *http.Request, tr *http.Transport, cli http.Client,
-) (int, int, int, int) {
+) (int, int) {
 	numWarnings := 0
 	numErrors := 0
 	useStdout := (cfg.OutputPattern == "" || cfg.OutputPattern == "-")
@@ -236,13 +258,13 @@ func oneRequest(i int, cfg *Config, addr net.IP, portNum int,
 		f, err := os.Create(fname)
 		if err != nil {
 			log.Errf("Error creating file %s: %v", fname, err)
-			return 1, 0, -1, -1
+			return 1, 0
 		}
 		defer f.Close()
 		out = bufio.NewWriter(f)
 		log.Infof("%d: Writing to %s", i, fname)
 	}
-	aStr := IPPortString(addr, portNum)
+	aStr := IPPortString(addr, cfg.portNum)
 	tr.DialContext = func(ctx context.Context, network, oAddr string) (net.Conn, error) {
 		log.LogVf("%d: DialContext %s %s -> %s", i, network, oAddr, aStr)
 		d := net.Dialer{}
@@ -252,7 +274,8 @@ func oneRequest(i int, cfg *Config, addr net.IP, portNum int,
 	req.Body = io.NopCloser(bytes.NewReader(cfg.Payload))
 	if err != nil {
 		log.Errf("%d: Error fetching %s: %v", i, addr, err)
-		return 1, 0, -1, -1
+		result.Codes[aStr] = -1
+		return 1, 0
 	}
 	level := log.Info
 	if cfg.ExpectedCode > 0 {
@@ -265,6 +288,16 @@ func oneRequest(i int, cfg *Config, addr net.IP, portNum int,
 		numWarnings++
 	}
 	log.Logf(level, "%d: Status %d %q from %s", i, resp.StatusCode, resp.Status, addr)
+	if resp.TLS != nil {
+		// Print certificate expiration date
+		for _, cert := range resp.TLS.PeerCertificates {
+			if result.ShortestCertExpiry.IsZero() || cert.NotAfter.Before(result.ShortestCertExpiry) {
+				result.ShortestCertExpiry = cert.NotAfter
+			}
+			durDays := Days(cert.NotAfter.Sub(cfg.now))
+			log.Infof("Certificate %q expires in %.0f days\n", cert.Subject, durDays)
+		}
+	}
 	if cfg.IncludeHeaders {
 		DumpResponseDetails(out, resp)
 	}
@@ -276,7 +309,10 @@ func oneRequest(i int, cfg *Config, addr net.IP, portNum int,
 	}
 	_, _ = out.Write(data)
 	_ = out.Flush()
-	return numErrors, numWarnings, resp.StatusCode, len(data)
+	// will be the last iteration's results
+	result.Codes[aStr] = resp.StatusCode
+	result.Sizes[aStr] = len(data)
+	return numErrors, numWarnings
 }
 
 func URLAddScheme(url string) string {
@@ -438,4 +474,8 @@ func ReadIPs(filename string) ([]net.IP, error) {
 		addrs = append(addrs, ip)
 	}
 	return addrs, nil
+}
+
+func Days(d time.Duration) float64 {
+	return d.Seconds() / 86400.
 }
