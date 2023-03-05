@@ -44,13 +44,13 @@ flags:
         IP address file to use instead of resolving the URL, use - for stdin
   -X string
         HTTP method to use, default is GET unless -d is set which defaults to POST
+  -cert-expiry days
+        Certificate expiry error threshold in days (default 7)
   -d string
         Payload to POST, use @filename to read from file
   -expected int
         Expected HTTP return code, 0 means any and non 200s will be warning otherwise if
 set any different code is an error
-  -expiry-warning days
-        Certificate expiry warning threshold in days (default 7)
   -i    Include response headers in output
   -loglevel level
         log level, one of [Debug Verbose Info Warning Error Critical Fatal] (default Info)

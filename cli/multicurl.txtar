@@ -35,13 +35,13 @@ stderr 'Assuming http:// on missing scheme for "debug.fortio.org"'
 stdout 'User-Agent: fortio.org/multicurl-'
 
 # positive test, https
-multicurl -loglevel verbose -4 -expiry-warning 365 https://debug.fortio.org/foo/bar
+! multicurl -loglevel verbose -4 -cert-expiry 365 https://debug.fortio.org/foo/bar
 stderr 'resolver ip4,'
 stderr ' V Resolving ip4 host debug.fortio.org \(port https -> 443\)'
-stderr ' W Shortest cert expiry is '
+stderr ' E Shortest cert expiry is '
 
 # no expiry warning (info) with the default 7 days
-multicurl https://debug.fortio.org/
+multicurl -4 https://debug.fortio.org/
 stderr ' I Shortest cert expiry is '
 
 

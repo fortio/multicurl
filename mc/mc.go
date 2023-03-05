@@ -73,8 +73,8 @@ type Config struct {
 	MaxIPs int
 	// Re-Lookup between iterations. False by default. doesn't apply if IPFile is set.
 	ReLookup bool
-	// Cert expiration warning threshold.
-	CertExpiryWarning time.Duration
+	// Cert expiration error threshold (if a cert is found expiring sooner than this).
+	CertExpiryError time.Duration
 	// extracted host
 	host string
 	// extracted port string
@@ -216,20 +216,25 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
 		}
 		result.Iterations++
 	}
-	LogCertExpiry(cfg, &result)
+	if !LogCertExpiry(cfg, &result) {
+		lastIterErrors++
+	}
 	return lastIterErrors, result
 }
 
-func LogCertExpiry(cfg *Config, result *ResultStats) {
+func LogCertExpiry(cfg *Config, result *ResultStats) (good bool) {
+	good = true
 	if result.ShortestCertExpiry.IsZero() {
 		return
 	}
 	expiry := result.ShortestCertExpiry.Sub(cfg.now)
 	level := log.Info
-	if expiry < cfg.CertExpiryWarning {
-		level = log.Warning
+	if expiry < cfg.CertExpiryError {
+		level = log.Error
+		good = false
 	}
 	log.Logf(level, "Shortest cert expiry is %s (%.1f days from now)", result.ShortestCertExpiry, Days(expiry))
+	return
 }
 
 func oneRequest(i int, cfg *Config, result *ResultStats, addr net.IP,
