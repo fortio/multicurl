@@ -167,7 +167,7 @@ stderr 'I Total iterations: 3,'
 stderr 'E 1: Error fetching.* Get "https://untrusted-root.badssl.com/": x509: certificate signed by unknown authority'
 
 # invalid cert with -insecure
-multicurl -4 -k https://untrusted-root.badssl.com/
+multicurl -4 -insecure https://untrusted-root.badssl.com/
 stderr 'I Certificate "CN=BadSSL Untrusted Root Certificate Authority'
 
 # no such ca-cert file
