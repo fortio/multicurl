@@ -44,8 +44,10 @@ flags:
         IP address file to use instead of resolving the URL, use - for stdin
   -X string
         HTTP method to use, default is GET unless -d is set which defaults to POST
-  -cacert Path
+  -cacert file
         Path to a custom CA certificate file to use instead of system ones.
+  -cert file
+        Path to a custom client certificate file for mTLS.
   -cert-expiry days
         Certificate expiry error threshold in days (default 7)
   -d string
@@ -56,6 +58,8 @@ set any different code is an error
   -i    Include response headers in output
   -insecure
         Skip verification of server certificate (insecure TLS)
+  -key file
+        Path to a custom client key file for mTLS.
   -loglevel level
         log level, one of [Debug Verbose Info Warning Error Critical Fatal] (default Info)
   -n int
@@ -201,7 +205,7 @@ body:
 exit status 2
 ```
 
-#### Certificate informations
+#### Certificate information
 
 ```bash
 % multicurl -4 -cert-expiry 60 https://debug.fortio.org > /dev/null

@@ -81,6 +81,10 @@ type Config struct {
 	CAFile string
 	// Insecure will continue despite certificate validation errors.
 	Insecure bool
+	// Client certificate file path to provide to server for mutual TLS.
+	Cert string
+	// Client certificate key file path to provide to server for mutual TLS.
+	Key string
 	// extracted host
 	host string
 	// extracted port string
@@ -166,9 +170,14 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
 	if err != nil {
 		return log.FErrf("%s", err), result
 	}
+	certs, err := GetCertificate(cfg.Cert, cfg.Key)
+	if err != nil {
+		return log.FErrf("LoadX509KeyPair error for cert %v / key %v: %v", cfg.Cert, cfg.Key, err), result
+	}
 	tr.TLSClientConfig = &tls.Config{
 		InsecureSkipVerify: cfg.Insecure,
 		RootCAs:            ca,
+		Certificates:       certs,
 	}
 	hcli := http.Client{
 		Transport: tr,
@@ -234,6 +243,17 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
 		lastIterErrors++
 	}
 	return lastIterErrors, result
+}
+
+func GetCertificate(cert, key string) ([]tls.Certificate, error) {
+	if cert == "" || key == "" {
+		return nil, nil
+	}
+	c, err := tls.LoadX509KeyPair(cert, key)
+	if err != nil {
+		return nil, err
+	}
+	return []tls.Certificate{c}, nil
 }
 
 func GetCA(caFile string) (*x509.CertPool, error) {

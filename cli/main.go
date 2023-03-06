@@ -67,8 +67,10 @@ func Main() int {
 	relookup := flag.Bool("relookup", false, "Re-lookup the URL between each repeat")
 	expiryThreshold := flag.Float64("cert-expiry", 7, "Certificate expiry error threshold in `days`")
 	caCertFlag := flag.String("cacert", "",
-		"`Path` to a custom CA certificate file to use instead of system ones.")
+		"Path to a custom CA certificate `file` to use instead of system ones.")
 	insecure := flag.Bool("insecure", false, "Skip verification of server certificate (insecure TLS)")
+	certFlag := flag.String("cert", "", "Path to a custom client certificate `file` for mTLS.")
+	keyFlag := flag.String("key", "", "Path to a custom client key `file` for mTLS.")
 
 	cli.ProgramName = "Fortio multicurl"
 	cli.ArgsHelp = "url"
@@ -101,6 +103,8 @@ func Main() int {
 	config.CertExpiryError = mc.Dur(*expiryThreshold)
 	config.Insecure = *insecure
 	config.CAFile = *caCertFlag
+	config.Cert = *certFlag
+	config.Key = *keyFlag
 	if *data != "" {
 		if config.Method == "" {
 			config.Method = http.MethodPost

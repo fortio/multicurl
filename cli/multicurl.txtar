@@ -179,6 +179,19 @@ exec sh -c 'openssl s_client -showcerts -servername self-signed.badssl.com -conn
 multicurl -4 -cacert test.ca https://self-signed.badssl.com/
 stderr 'I Certificate "CN=..badssl.com'
 
+# bad client cert path
+! multicurl -4 -cert nosuchfile.crt -key nosuchfile.key https://debug.fortio.org/
+stderr 'F LoadX509KeyPair error for cert nosuchfile.crt / key nosuchfile.key: open nosuchfile.crt: no such file or directory'
+
+# mtls test
+# on mac you need to use openssl from
+# brew install openssl@3
+exec curl -sS -o client.p12 https://badssl.com/certs/badssl.com-client.p12
+exec openssl version
+exec openssl pkcs12 -legacy -in client.p12 -out client.crt -clcerts -nokeys -passin pass:badssl.com
+exec openssl pkcs12 -legacy -in client.p12 -out client.key -nocerts -nodes -passin pass:badssl.com
+multicurl -4 -cert client.crt -key client.key https://client.badssl.com/
+stdout 'This site requires a .*client-authenticated.*TLS handshake'
 
 -- payloadFile.txt --
 Just a test
