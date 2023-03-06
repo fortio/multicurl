@@ -184,10 +184,12 @@ stderr 'I Certificate "CN=..badssl.com'
 stderr 'F LoadX509KeyPair error for cert nosuchfile.crt / key nosuchfile.key: open nosuchfile.crt: no such file or directory'
 
 # mtls test
-exec curl -s -o client.p12 https://badssl.com/certs/badssl.com-client.p12
+# on mac you need to use openssl from
+# brew install openssl@3
+exec curl -sS -o client.p12 https://badssl.com/certs/badssl.com-client.p12
 exec openssl version
-exec openssl pkcs12 -in client.p12 -out client.crt -clcerts -nokeys -passin pass:badssl.com
-exec openssl pkcs12 -in client.p12 -out client.key -nocerts -nodes -passin pass:badssl.com
+exec openssl pkcs12 -legacy -in client.p12 -out client.crt -clcerts -nokeys -passin pass:badssl.com
+exec openssl pkcs12 -legacy -in client.p12 -out client.key -nocerts -nodes -passin pass:badssl.com
 multicurl -4 -cert client.crt -key client.key https://client.badssl.com/
 stdout 'This site requires a .*client-authenticated.*TLS handshake'
 
