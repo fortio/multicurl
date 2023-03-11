@@ -360,8 +360,7 @@ func oneRequest(i int, cfg *Config, result *ResultStats, addr net.IP,
 		numErrors++
 	}
 	_, _ = out.Write(data)
-	f, ok := out.(*bufio.Writer)
-	if ok {
+	if f, ok := out.(*bufio.Writer); ok {
 		f.Flush()
 	}
 	// will be the last iteration's results
