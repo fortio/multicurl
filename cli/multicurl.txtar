@@ -193,13 +193,13 @@ exec openssl pkcs12 -legacy -in client.p12 -out client.key -nocerts -nodes -pass
 multicurl -4 -cert client.crt -key client.key https://client.badssl.com/
 stdout 'This site requires a .*client-authenticated.*TLS handshake'
 
-# json
+# json, no certs, no expiry
 multicurl -4 -n 1 -json -o none http://debug.fortio.org
-! stdout '"ShortestCertExpiry":'
+! stdout 'ShortestCertExpiry'
 
-# json
+# json, https, should have ShortestCertExpiry (note: test will fail in 2100 ;-))
 multicurl -4 -n 1 -json -o none https://debug.fortio.org
-stdout '  "ShortestCertExpiry": "'
+stdout '  "ShortestCertExpiry": "20'
 
 -- payloadFile.txt --
 Just a test
