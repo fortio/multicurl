@@ -236,7 +236,7 @@ exit status 1
 ### JSON output
 
 ```bash
-multicurl -json -o none https://debug.fortio.org 2> /dev/null | jq
+multicurl -json -quiet -o none https://debug.fortio.org | jq
 ```
 Yields
  ```json
