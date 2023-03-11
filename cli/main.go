@@ -16,6 +16,7 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"net/http"
 	"os"
@@ -54,8 +55,8 @@ func Main() int {
 	var headersFlags headersFlagList
 	flag.Var(&headersFlags, "H",
 		"Additional http header(s). Multiple `key:value` pairs can be passed using multiple -H.")
-	output := flag.String("o", "",
-		"Output `file name pattern`, e.g \"out-%.html\" where % will be replaced by the ip, default is stdout")
+	output := flag.String("o", "", "Output `file name pattern`, e.g \"out-%.html\" where % will be replaced by the ip, "+
+		"default is stdout, use \"none\" for no output (in combination with -json for instance)")
 	data := flag.String("d", "", "Payload to POST, use @filename to read from file")
 	ipInput := flag.String("I", "", "IP address `file` to use instead of resolving the URL, use - for stdin")
 	expected := flag.Int("expected", 0,
@@ -71,6 +72,7 @@ func Main() int {
 	insecure := flag.Bool("insecure", false, "Skip verification of server certificate (insecure TLS)")
 	certFlag := flag.String("cert", "", "Path to a custom client certificate `file` for mTLS.")
 	keyFlag := flag.String("key", "", "Path to a custom client key `file` for mTLS.")
+	jsonFlag := flag.Bool("json", false, "JSON output of summary results")
 
 	cli.ProgramName = "Fortio multicurl"
 	cli.ArgsHelp = "url"
@@ -121,6 +123,10 @@ func Main() int {
 	exitCode, results := mc.MultiCurl(ctx, config)
 	log.Debugf("Results: %+v", results)
 	log.Infof("Total iterations: %d, errors: %d, warnings %d", results.Iterations, results.Errors, results.Warnings)
+	if *jsonFlag {
+		j, _ := json.MarshalIndent(results, "", "  ") //nolint:errchkjson // https://github.com/breml/errchkjson/issues/22
+		os.Stdout.Write(append(j, '\n'))
+	}
 	return exitCode
 }
 

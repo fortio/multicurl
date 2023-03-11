@@ -100,7 +100,7 @@ stderr 'invalid value "foo" for flag -H: invalid extra header .foo., expecting K
 
 # bad -o (missing pattern)
 ! multicurl -o foo debug.fortio.org
-stderr 'F Output pattern must contain %$'
+stderr 'F Output pattern must contain % or be "none" or "-"$'
 
 # write to files (if debug.fortio.org IP for a1 changes this will need an update, ditto if it's not 3 ipv4 addresses anymore)
 multicurl -4 -o out.%.txt debug.fortio.org
@@ -164,7 +164,7 @@ stderr 'I Total iterations: 3,'
 
 # invalid cert
 ! multicurl -4 https://untrusted-root.badssl.com/
-stderr 'E 1: Error fetching.* Get "https://untrusted-root.badssl.com/": x509: certificate signed by unknown authority'
+stderr 'E 1: Error fetching.* Get "https://untrusted-root.badssl.com/":.*x509: certificate signed by unknown authority'
 
 # invalid cert with -insecure
 multicurl -4 -insecure https://untrusted-root.badssl.com/
@@ -192,6 +192,14 @@ exec openssl pkcs12 -legacy -in client.p12 -out client.crt -clcerts -nokeys -pas
 exec openssl pkcs12 -legacy -in client.p12 -out client.key -nocerts -nodes -passin pass:badssl.com
 multicurl -4 -cert client.crt -key client.key https://client.badssl.com/
 stdout 'This site requires a .*client-authenticated.*TLS handshake'
+
+# json, no certs, no expiry
+multicurl -4 -n 1 -json -o none http://debug.fortio.org
+! stdout 'ShortestCertExpiry'
+
+# json, https, should have ShortestCertExpiry (note: test will fail in 2100 ;-))
+multicurl -4 -n 1 -json -o none https://debug.fortio.org
+stdout '  "ShortestCertExpiry": "20'
 
 -- payloadFile.txt --
 Just a test

@@ -30,7 +30,6 @@ multicurl https://debug.fortio.org/test
 
 Use `-4` for ipv4 only, `-6` for ipv6 only, otherwise it'll try all of them.
 
-
 <!-- generate using
 go run . help | expand | fold -s -w 92 | sed -e "s/ $//" -e "s/</\&lt;/"
 -->
@@ -58,6 +57,8 @@ set any different code is an error
   -i    Include response headers in output
   -insecure
         Skip verification of server certificate (insecure TLS)
+  -json
+        JSON output of summary results
   -key file
         Path to a custom client key file for mTLS.
   -loglevel level
@@ -66,7 +67,7 @@ set any different code is an error
         Max number of IPs to use/try (0 means all the ones found)
   -o file name pattern
         Output file name pattern, e.g "out-%.html" where % will be replaced by the ip,
-default is stdout
+default is stdout, use "none" for no output (in combination with -json for instance)
   -quiet
         Quiet mode, sets loglevel to Error (quietly) to reduces the output
   -relookup
@@ -231,3 +232,44 @@ Yields
 12:46:55 I Total iterations: 1, errors: 0, warnings 0
 exit status 1
 ```
+
+### JSON output
+
+```bash
+multicurl -json -o none https://debug.fortio.org 2> /dev/null | jq
+```
+Yields
+ ```json
+{
+  "Errors": 0,
+  "Warnings": 0,
+  "Addresses": [
+    "2603:c024:c00a:d144:6663:5896:7efb:fbf3",
+    "2603:c024:c00a:d144:7cd0:4951:7106:96b8",
+    "2600:1f16:9c6:b400:282c:a766:6cab:4e82",
+    "192.9.142.5",
+    "192.9.227.83",
+    "18.222.136.83"
+  ],
+  "Codes": {
+    "18.222.136.83:443": 200,
+    "192.9.142.5:443": 200,
+    "192.9.227.83:443": 200,
+    "[2600:1f16:9c6:b400:282c:a766:6cab:4e82]:443": 200,
+    "[2603:c024:c00a:d144:6663:5896:7efb:fbf3]:443": 200,
+    "[2603:c024:c00a:d144:7cd0:4951:7106:96b8]:443": 200
+  },
+  "Sizes": {
+    "18.222.136.83:443": 339,
+    "192.9.142.5:443": 340,
+    "192.9.227.83:443": 340,
+    "[2600:1f16:9c6:b400:282c:a766:6cab:4e82]:443": 369,
+    "[2603:c024:c00a:d144:6663:5896:7efb:fbf3]:443": 370,
+    "[2603:c024:c00a:d144:7cd0:4951:7106:96b8]:443": 370
+  },
+  "Iterations": 1,
+  "ShortestCertExpiry": "2023-04-26T02:13:27Z"
+}
+```
+
+Note the handy `ShortestCertExpiry` entry.
