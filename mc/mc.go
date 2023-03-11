@@ -58,7 +58,7 @@ type Config struct {
 	// HostOverride is the host/authority to use for the request. If empty, the host from the URL is used
 	HostOverride string
 	// OutputPattern is the pattern to use for the output file names, must contain a % which will get replaced by
-	// the IP of the target. If empty, output is written to stdout.
+	// the IP of the target. If empty or "-", output is written to stdout. If "none" no output is written.
 	OutputPattern string
 	// Payload to send or nil if none.
 	Payload []byte
@@ -110,7 +110,7 @@ type ResultStats struct {
 	// Iterations done
 	Iterations int
 	// Shortest certificate expiration found
-	ShortestCertExpiry time.Time
+	ShortestCertExpiry *time.Time `json:"ShortestCertExpiry,omitempty"`
 }
 
 var (
@@ -125,15 +125,16 @@ func init() {
 // MultiCurl is the main function of the multicurl tool. timeout is per request/ip.
 // Returns 0 if all is successful, the number of errors otherwise.
 // ResultStats is the details of the run (see ResultStats).
-func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
+func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) { //nolint:funlen // lots of needed validation/setup
 	cfg.now = time.Now()
 	log.Infof("Fortio multicurl %s, using resolver %s, %s %s", libLongVersion, cfg.ResolveType, cfg.Method, cfg.URL)
 	result := ResultStats{
 		Codes: make(map[string]int),
 		Sizes: make(map[string]int),
 	}
-	if cfg.OutputPattern != "" && cfg.OutputPattern != "-" && !strings.Contains(cfg.OutputPattern, "%") {
-		return log.FErrf("Output pattern must contain %%"), result
+	if cfg.OutputPattern != "" && cfg.OutputPattern != "-" &&
+		cfg.OutputPattern != "none" && !strings.Contains(cfg.OutputPattern, "%") {
+		return log.FErrf("Output pattern must contain %% or be \"none\" or \"-\""), result
 	}
 	if len(cfg.URL) == 0 {
 		return log.FErrf("Unexpected empty url"), result
@@ -175,7 +176,7 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) {
 		return log.FErrf("LoadX509KeyPair error for cert %v / key %v: %v", cfg.Cert, cfg.Key, err), result
 	}
 	tr.TLSClientConfig = &tls.Config{
-		InsecureSkipVerify: cfg.Insecure,
+		InsecureSkipVerify: cfg.Insecure, //nolint:gosec // on purpose with the flag/config
 		RootCAs:            ca,
 		Certificates:       certs,
 	}
@@ -258,7 +259,7 @@ func GetCertificate(cert, key string) ([]tls.Certificate, error) {
 
 func GetCA(caFile string) (*x509.CertPool, error) {
 	if caFile == "" {
-		return nil, nil // default/system ones
+		return nil, nil //nolint:nilnil // nil is perfectly valid pointer value for using default/system CAs
 	}
 	caCertPool := x509.NewCertPool()
 	// Load CA cert from file
@@ -273,7 +274,7 @@ func GetCA(caFile string) (*x509.CertPool, error) {
 // checkCertExpiry returns true if expiry is ok (below error threshold).
 func checkCertExpiry(cfg *Config, result *ResultStats) (good bool) {
 	good = true
-	if result.ShortestCertExpiry.IsZero() {
+	if result.ShortestCertExpiry == nil {
 		return
 	}
 	expiry := result.ShortestCertExpiry.Sub(cfg.now)
@@ -291,7 +292,6 @@ func oneRequest(i int, cfg *Config, result *ResultStats, addr net.IP,
 ) (int, int) {
 	numWarnings := 0
 	numErrors := 0
-	useStdout := (cfg.OutputPattern == "" || cfg.OutputPattern == "-")
 	log.LogVf("%d: Using %s", i, addr)
 	if cfg.Payload != nil {
 		// need to reset the body for each request
@@ -299,10 +299,13 @@ func oneRequest(i int, cfg *Config, result *ResultStats, addr net.IP,
 		req.Body = io.NopCloser(bytes.NewReader(cfg.Payload))
 		req.ContentLength = int64(len(cfg.Payload)) // avoid chunked encoding, we already know the size
 	}
-	var out *bufio.Writer
-	if useStdout {
+	var out io.Writer
+	switch cfg.OutputPattern {
+	case "", "-":
 		out = bufio.NewWriter(os.Stdout)
-	} else {
+	case "none":
+		out = io.Discard
+	default:
 		fname := Filename(cfg, addr)
 		f, err := os.Create(fname)
 		if err != nil {
@@ -340,8 +343,8 @@ func oneRequest(i int, cfg *Config, result *ResultStats, addr net.IP,
 	if resp.TLS != nil {
 		// Print certificate expiration date
 		for _, cert := range resp.TLS.PeerCertificates {
-			if result.ShortestCertExpiry.IsZero() || cert.NotAfter.Before(result.ShortestCertExpiry) {
-				result.ShortestCertExpiry = cert.NotAfter
+			if result.ShortestCertExpiry == nil || cert.NotAfter.Before(*result.ShortestCertExpiry) {
+				result.ShortestCertExpiry = &cert.NotAfter
 			}
 			durDays := Days(cert.NotAfter.Sub(cfg.now))
 			log.Infof("Certificate %q expires in %.0f days\n", cert.Subject, durDays)
@@ -357,7 +360,10 @@ func oneRequest(i int, cfg *Config, result *ResultStats, addr net.IP,
 		numErrors++
 	}
 	_, _ = out.Write(data)
-	_ = out.Flush()
+	f, ok := out.(*bufio.Writer)
+	if ok {
+		f.Flush()
+	}
 	// will be the last iteration's results
 	result.Codes[aStr] = resp.StatusCode
 	result.Sizes[aStr] = len(data)

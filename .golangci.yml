@@ -42,6 +42,7 @@ linters-settings:
           - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
           - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
           - (github.com/golangci/golangci-lint/pkg/logutils.Log).Printf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).FErrf
     enable-all: true
     disable-all: false
   depguard:
@@ -81,6 +82,8 @@ linters-settings:
 
 linters:
   disable:
+    # bad ones:
+    - musttag
     # Deprecated ones:
     - scopelint
     - golint
