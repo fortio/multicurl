@@ -100,7 +100,7 @@ stderr 'invalid value "foo" for flag -H: invalid extra header .foo., expecting K
 
 # bad -o (missing pattern)
 ! multicurl -o foo debug.fortio.org
-stderr 'F Output pattern must contain %$'
+stderr 'F Output pattern must contain % or be "none" or "-"$'
 
 # write to files (if debug.fortio.org IP for a1 changes this will need an update, ditto if it's not 3 ipv4 addresses anymore)
 multicurl -4 -o out.%.txt debug.fortio.org
