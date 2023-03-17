@@ -55,7 +55,9 @@ type Config struct {
 	IncludeHeaders bool
 	// Headers are the headers to use for the request. Must be initialized. Or call NewConfig().
 	Headers http.Header
-	// HostOverride is the host/authority to use for the request. If empty, the host from the URL is used
+	// HostOverride is the host/authority to use for the request. If empty, the host from the URL is used.
+	// This will also change the ServerName used for TLS handshake (sni) so in essence passing HostOverride
+	// is the same as passing the IPs of the server of the url and using the name from HostOverride as the url.
 	HostOverride string
 	// OutputPattern is the pattern to use for the output file names, must contain a % which will get replaced by
 	// the IP of the target. If empty or "-", output is written to stdout. If "none" no output is written.
@@ -179,6 +181,7 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) { //nolint:f
 		InsecureSkipVerify: cfg.Insecure, //nolint:gosec // on purpose with the flag/config
 		RootCAs:            ca,
 		Certificates:       certs,
+		ServerName:         cfg.HostOverride,
 	}
 	hcli := http.Client{
 		Transport: tr,

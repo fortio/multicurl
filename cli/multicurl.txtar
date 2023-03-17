@@ -94,6 +94,14 @@ stdout 'POST / HTTP/1.1'
 stdout -count=2 'foo bar'
 stderr 'V Will be setting special Host header to debug.fortio.org'
 
+# Host header for https
+# get the debug cert despite using the demo.oracle.fortio.org IPs
+multicurl -4 -loglevel verbose -H Host:debug.fortio.org -d 'foo bar' https://demo.oracle.fortio.org
+stdout 'Debug server on'
+stdout 'Request from .* https TLS_'
+stderr 'V Will be setting special Host header to debug.fortio.org'
+stderr 'I Certificate "CN=debug.fortio.org" expires in'
+
 # bad -H
 ! multicurl -H foo debug.fortio.org
 stderr 'invalid value "foo" for flag -H: invalid extra header .foo., expecting Key: Value'
