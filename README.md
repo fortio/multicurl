@@ -85,6 +85,8 @@ negative is retry until -total-timeout
 
 Note that `-relookup` works better on CGO_ENABLED=0 built binary, otherwise the OS library caches the results.
 
+Note that `-H Host:xxx https://yyyy/` is a special header and using that will be the same as querying `https://xxx/` using the IPs of `yyy` (convenient to test a virtual host against a LoadBalancer or ingress name before the DNS is updated)
+
 See also [multicurl.txtar](multicurl.txtar) for examples (tests)
 
 ### Example
