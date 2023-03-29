@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/fortio/multicurl/cli"
-	"github.com/rogpeppe/go-internal/testscript"
+	"fortio.org/multicurl/cli"
+	"fortio.org/testscript"
 )
 
 func TestMain(m *testing.M) {

@@ -9,7 +9,7 @@ It will also print information about certificates, including the shortest expira
 
 If you have a recent go installation already:
 ```shell
-CGO_ENABLED=0 go install github.com/fortio/multicurl@latest
+CGO_ENABLED=0 go install fortio.org/multicurl@latest
 ```
 
 Or get on of the [binary releases](https://github.com/fortio/multicurl/releases)

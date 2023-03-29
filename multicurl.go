@@ -17,7 +17,7 @@ package main
 import (
 	"os"
 
-	"github.com/fortio/multicurl/cli"
+	"fortio.org/multicurl/cli"
 )
 
 func main() {

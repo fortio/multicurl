@@ -121,7 +121,7 @@ var (
 )
 
 func init() {
-	libShortVersion, libLongVersion, _ = version.FromBuildInfoPath("github.com/fortio/multicurl")
+	libShortVersion, libLongVersion, _ = version.FromBuildInfoPath("fortio.org/multicurl")
 }
 
 // MultiCurl is the main function of the multicurl tool. timeout is per request/ip.
