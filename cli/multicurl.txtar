@@ -60,7 +60,7 @@ stderr 'I Resolved ip localhost:9099 to port 9099 and 2 addresses \[::1 127.0.0.
 
 # resolve failure
 ! multicurl -quiet doesntexist.fortio.org
-stderr 'E Unable to lookup "doesntexist.fortio.org": lookup doesntexist.fortio.org.*: no such host
+stderr 'E Unable to lookup "doesntexist.fortio.org": lookup doesntexist.fortio.org.*: no such host'
 ! stderr 'I Total iterations'
 
 # redirect
