@@ -24,7 +24,7 @@ import (
 
 	"fortio.org/cli"
 	"fortio.org/log"
-	"github.com/fortio/multicurl/mc"
+	"fortio.org/multicurl/mc"
 )
 
 // -- Support for multiple instances of -H flag on cmd line.
