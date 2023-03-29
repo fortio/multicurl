@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Deprecated: package import moved to [fortio.org/multicurl/cli] for 1.14 onward.
 package cli
 
 import (

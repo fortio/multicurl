@@ -13,8 +13,7 @@
 // limitations under the License.
 
 // Multicurl package is a library for the multicurl tool to fetch a url from all its IPs.
-// Some of this code is based on the fortio code.
-// https://github.com/fortio/fortio/blob/master/fnet/network.go
+// Deprecated: package import moved to [fortio.org/multicurl/mc] for 1.14 onward.
 package mc
 
 import (

@@ -1,3 +1,4 @@
+// Deprecated: package import moved to fortio.org/multicurl for 1.14 onward.
 module github.com/fortio/multicurl
 
 go 1.18

@@ -5,6 +5,8 @@
 Fetches a URL from all the IPs of a given host. Optionally repeat until an expected result code is obtained from all addresses.
 It will also print information about certificates, including the shortest expiration found.
 
+The new package import is now [fortio.org/multicurl](https://pkg.go.dev/fortio.org/multicurl) from 1.14 onward (git remains here on github)
+
 ## Installation
 
 If you have a recent go installation already:
