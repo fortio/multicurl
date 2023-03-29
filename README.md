@@ -275,3 +275,6 @@ Yields
 ```
 
 Note the handy `ShortestCertExpiry` entry.
+
+
+ps: this started as https://pkg.go.dev/github.com/fortio/multicurl and now is available under https://pkg.go.dev/fortio.org/multicurl
