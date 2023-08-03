@@ -22,11 +22,11 @@ stderr 'flag provided but not defined: -foo'
 
 # bad url
 ! multicurl 'http://a bad url'
-stderr 'F Bad url "http://a bad url" : parse "http://a bad url": invalid character " " in host name'
+stderr '\[F\] Bad url "http://a bad url" : parse "http://a bad url": invalid character " " in host name'
 
 # empty url
 ! multicurl ''
-stderr 'F Unexpected empty url'
+stderr '\[F\] Unexpected empty url'
 
 # positive test, scheme added (have to use -4 for positive tests because https://github.com/actions/runner-images/issues/668)
 multicurl -4 -loglevel verbose debug.fortio.org
@@ -37,12 +37,12 @@ stdout 'User-Agent: fortio.org/multicurl-'
 # positive test, https
 ! multicurl -loglevel verbose -4 -cert-expiry 365 https://debug.fortio.org/foo/bar
 stderr 'resolver ip4,'
-stderr ' V Resolving ip4 host debug.fortio.org \(port https -> 443\)'
-stderr ' E Shortest cert expiry is '
+stderr ' \[V\] Resolving ip4 host debug.fortio.org \(port https -> 443\)'
+stderr ' \[E\] Shortest cert expiry is '
 
 # no expiry warning (info) with the default 7 days
 multicurl -4 https://debug.fortio.org/
-stderr ' I Shortest cert expiry is '
+stderr ' \[I\] Shortest cert expiry is '
 
 
 
@@ -56,12 +56,12 @@ stderr 'Resolved ip '
 
 # default
 ! multicurl -loglevel verbose localhost:9099
-stderr 'I Resolved ip localhost:9099 to port 9099 and 2 addresses \[(::1|127.0.0.1| )+\]'
+stderr '\[I\] Resolved ip localhost:9099 to port 9099 and 2 addresses \[(::1|127.0.0.1| )+\]'
 
 # resolve failure
 ! multicurl -quiet doesntexist.fortio.org
-stderr 'E Unable to lookup "doesntexist.fortio.org": lookup doesntexist.fortio.org.*: no such host'
-! stderr 'I Total iterations'
+stderr '\[E\] Unable to lookup "doesntexist.fortio.org": lookup doesntexist.fortio.org.*: no such host'
+! stderr '\[I\] Total iterations'
 
 # redirect
 multicurl -4 http://demo.fortio.org/x
@@ -70,12 +70,12 @@ stderr 'Status 303 '
 
 # bad port
 ! multicurl http://foo:90000/
-stderr 'F Unable to resolve port "90000": address 90000: invalid port'
+stderr '\[F\] Unable to resolve port "90000": address 90000: invalid port'
 
 # -quiet mode (formerly -s) - not that (cli) -quiet suppress warnings now too
 multicurl -4 -loglevel warning http://demo.fortio.org/x
-! stderr 'I Resolving'
-stderr 'W \[1\] 0 errors \(2 warnings\)'
+! stderr '\[I\] Resolving'
+stderr '\[W\] \[1\] 0 errors \(2 warnings\)'
 
 # -i mode (assumes demo.fortio.org is fronted by cloudflare)
 multicurl -4 -i http://demo.fortio.org/x
@@ -92,15 +92,15 @@ multicurl -4 -loglevel verbose -H Host:debug.fortio.org -d 'foo bar' demo.fortio
 stdout 'Debug server on'
 stdout 'POST / HTTP/1.1'
 stdout -count=2 'foo bar'
-stderr 'V Will be setting special Host header to debug.fortio.org'
+stderr '\[V\] Will be setting special Host header to debug.fortio.org'
 
 # Host header for https
 # get the debug cert despite using the demo.oracle.fortio.org IPs
-multicurl -4 -loglevel verbose -H Host:debug.fortio.org -d 'foo bar' https://demo.oracle.fortio.org
+multicurl -4 -loglevel verbose -H Host:debug.fortio.org -d '\[F\]oo bar' https://demo.oracle.fortio.org
 stdout 'Debug server on'
 stdout 'Request from .* https TLS_'
-stderr 'V Will be setting special Host header to debug.fortio.org'
-stderr 'I Certificate "CN=debug.fortio.org" expires in'
+stderr '\[V\] Will be setting special Host header to debug.fortio.org'
+stderr '\[I\] Certificate "CN=debug.fortio.org" expires in'
 
 # bad -H
 ! multicurl -H foo debug.fortio.org
@@ -108,16 +108,16 @@ stderr 'invalid value "foo" for flag -H: invalid extra header .foo., expecting K
 
 # bad -o (missing pattern)
 ! multicurl -o foo debug.fortio.org
-stderr 'F Output pattern must contain % or be "none" or "-"$'
+stderr '\[F\] Output pattern must contain % or be "none" or "-"$'
 
 # write to files (if debug.fortio.org IP for a1 changes this will need an update, ditto if it's not 3 ipv4 addresses anymore)
 multicurl -4 -o out.%.txt debug.fortio.org
-stderr -count=3 'I .: Writing to out\.[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\.txt'
+stderr -count=3 '\[I\] .: Writing to out\.[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\.txt'
 grep 'Debug server on a1' out.18.222.136.83.txt
 
 # error case
 ! multicurl -4 -i -o /doesnexist/debug.%.txt debug.fortio.org
-stderr 'E Error creating file /doesnexist/debug.+: open /doesnexist/debug.+: no such file or directory'
+stderr '\[E\] Error creating file /doesnexist/debug.+: open /doesnexist/debug.+: no such file or directory'
 
 # Weird method test - count depends on number of ip addresses for debug.fortio.org
 multicurl -4 -X INFO -d 'blah blah' https://debug.fortio.org
@@ -126,7 +126,7 @@ stdout -count=3 'blah blah'
 
 # Debug summary of proxy is escaping the body thus the \n
 multicurl -4 -d @payloadFile.txt https://debug.fortio.org
-stderr 'I Read 23 bytes from "payloadFile.txt" as payload'
+stderr '\[I\] Read 23 bytes from "payloadFile.txt" as payload'
 stdout 'POST / HTTP/2.0'
 stdout 'Content-Length: 23'
 stdout '^body:$'
@@ -134,11 +134,11 @@ stdout '^Just a test\\nof payload\\n$'
 
 # payload file errror
 ! multicurl -4 -d @nosuchfile.txt https://debug.fortio.org
-stderr 'F Unable to read payload from file "nosuchfile.txt": open nosuchfile.txt: no such file or directory'
+stderr '\[F\] Unable to read payload from file "nosuchfile.txt": open nosuchfile.txt: no such file or directory'
 
 # ip file error
 ! multicurl -4 -I nosuchfile.txt https://debug.fortio.org
-stderr 'F Unable to resolve ip4 host debug.fortio.org: open nosuchfile.txt: no such file or directory'
+stderr '\[F\] Unable to resolve ip4 host debug.fortio.org: open nosuchfile.txt: no such file or directory'
 
 # ip file
 multicurl -4 -I ips.txt https://debug.fortio.org
@@ -147,11 +147,11 @@ stderr '18.222.136.83'
 
 # bad ip file
 ! multicurl -4 -I badIps.txt https://debug.fortio.org
-stderr 'F Unable to resolve ip4 host debug.fortio.org: unable to parse IP "not-an-ip"'
+stderr '\[F\] Unable to resolve ip4 host debug.fortio.org: unable to parse IP "not-an-ip"'
 
 # good ipv6
 ! multicurl -I ipv6.txt http://foo:9099/
-stderr 'I Resolved ip foo:9099 to port 9099 and 2 addresses \[::1 ::2\]'
+stderr '\[I\] Resolved ip foo:9099 to port 9099 and 2 addresses \[::1 ::2\]'
 stderr 'connect: connection refused'
 
 # stdin ips
@@ -161,35 +161,35 @@ stderr 'Using stdin for list of IPs to connect to'
 
 # retries
 ! multicurl -4 -repeat -1 -repeat-delay 1s -total-timeout 1.9s -expected 301 http://debug.fortio.org
-stderr 'E Interrupted/total timeout reached'
-stderr 'I Total iterations: 2,'
+stderr '\[E\] Interrupted/total timeout reached'
+stderr '\[I\] Total iterations: 2,'
 
 # relookup and maxip
 ! multicurl -4 -relookup -n 1 -repeat 10 -repeat-delay 1s -total-timeout 2.9s -expected 301 http://debug.fortio.org
-stderr -count=3 'I Resolved ip4 debug.fortio.org:http to port 80 and 3 addresses .* - keeping first 1$'
-stderr 'E Interrupted/total timeout reached'
-stderr 'I Total iterations: 3,'
+stderr -count=3 '\[I\] Resolved ip4 debug.fortio.org:http to port 80 and 3 addresses .* - keeping first 1$'
+stderr '\[E\] Interrupted/total timeout reached'
+stderr '\[I\] Total iterations: 3,'
 
 # invalid cert
 ! multicurl -4 https://untrusted-root.badssl.com/
-stderr 'E 1: Error fetching.* Get "https://untrusted-root.badssl.com/":.*x509: certificate signed by unknown authority'
+stderr '\[E\] 1: Error fetching.* Get "https://untrusted-root.badssl.com/":.*x509: certificate signed by unknown authority'
 
 # invalid cert with -insecure
 multicurl -4 -insecure https://untrusted-root.badssl.com/
-stderr 'I Certificate "CN=BadSSL Untrusted Root Certificate Authority'
+stderr '\[I\] Certificate "CN=BadSSL Untrusted Root Certificate Authority'
 
 # no such ca-cert file
 ! multicurl -4 -cacert nosuchfile https://debug.fortio.org/
-stderr 'F can.t read CA file: open nosuchfile: no such file or directory'
+stderr '\[F\] can.t read CA file: open nosuchfile: no such file or directory'
 
 # get the server cert
 exec sh -c 'openssl s_client -showcerts -servername self-signed.badssl.com -connect self-signed.badssl.com:443 </dev/null | openssl x509 > test.ca'
 multicurl -4 -cacert test.ca https://self-signed.badssl.com/
-stderr 'I Certificate "CN=..badssl.com'
+stderr '\[I\] Certificate "CN=..badssl.com'
 
 # bad client cert path
 ! multicurl -4 -cert nosuchfile.crt -key nosuchfile.key https://debug.fortio.org/
-stderr 'F LoadX509KeyPair error for cert nosuchfile.crt / key nosuchfile.key: open nosuchfile.crt: no such file or directory'
+stderr '\[F\] LoadX509KeyPair error for cert nosuchfile.crt / key nosuchfile.key: open nosuchfile.crt: no such file or directory'
 
 # mtls test
 # on mac you need to use openssl from
