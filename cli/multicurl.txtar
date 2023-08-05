@@ -63,35 +63,35 @@ stderr '\[I\] Resolved ip localhost:9099 to port 9099 and 2 addresses \[(::1|127
 stderr '\[E\] Unable to lookup "doesntexist.fortio.org": lookup doesntexist.fortio.org.*: no such host'
 ! stderr '\[I\] Total iterations'
 
-# redirect
+# redirect (2 warnings when using cloudflare proxy, 1 when not/when pointing directly at aws node (to renew cert))
 multicurl -4 http://demo.fortio.org/x
-stderr '\[1\] 0 errors \(2 warnings\)'
+stderr '\[1\] 0 errors \([12] warnings?\)'
 stderr 'Status 303 '
 
 # bad port
 ! multicurl http://foo:90000/
 stderr '\[F\] Unable to resolve port "90000": address 90000: invalid port'
 
-# -quiet mode (formerly -s) - not that (cli) -quiet suppress warnings now too
+# was -quiet mode (formerly -s) - not that (cli) -quiet suppress warnings now too
 multicurl -4 -loglevel warning http://demo.fortio.org/x
 ! stderr '\[I\] Resolving'
-stderr '\[W\] \[1\] 0 errors \(2 warnings\)'
+stderr '\[W\] \[1\] 0 errors \([12] warnings?\)'
 
-# -i mode (assumes demo.fortio.org is fronted by cloudflare)
+# -i mode
 multicurl -4 -i http://demo.fortio.org/x
 stdout 'HTTP/1.1 303 See Other'
-stdout 'Server: cloudflare'
+stdout 'Location: https://demo.fortio.org/x'
 
 # -H clear User-Agent
 multicurl -4 -loglevel verbose -H User-Agent: -H FOO-heaDER:bAr debug.fortio.org
 ! stdout User-Agent
 stdout 'Foo-Header: bAr'
 
-# Host header and a POST (count 2 is assuming cloudflare 2 ips)
+# Host header and a POST (removed count 2 that was assuming cloudflare 2 ips)
 multicurl -4 -loglevel verbose -H Host:debug.fortio.org -d 'foo bar' demo.fortio.org
 stdout 'Debug server on'
 stdout 'POST / HTTP/1.1'
-stdout -count=2 'foo bar'
+stdout 'foo bar'
 stderr '\[V\] Will be setting special Host header to debug.fortio.org'
 
 # Host header for https
