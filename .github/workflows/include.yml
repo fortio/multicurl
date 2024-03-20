@@ -1,0 +1,7 @@
+jobs:
+    call-codecov:
+        uses: github.org/fortio/workflows/.github/workflows/codecov.yml@main
+    call-codeql:
+        uses: github.org/fortio/workflows/.github/workflows/codeql-analysis.yml@main
+    call-releaser:
+        uses: github.org/fortio/workflows/.github/workflows/releaser.yml@main
