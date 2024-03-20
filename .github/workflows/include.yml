@@ -1,3 +1,4 @@
+name: "Shared cli fortio workflows"
 on:
     push:
       branches: [ main ]
@@ -17,3 +18,7 @@ jobs:
         uses: fortio/workflows/.github/workflows/releaser.yml@main
         with:
             description: "Fortio multi curl"
+        secrets:
+            GH_PAT: ${{ secrets.GH_PAT }}
+            DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+            DOCKER_USER: ${{ secrets.DOCKER_USER }}
