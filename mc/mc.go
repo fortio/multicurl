@@ -186,7 +186,7 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) { //nolint:f
 	hcli := http.Client{
 		Transport: tr,
 		Timeout:   cfg.RequestTimeout,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
 	}

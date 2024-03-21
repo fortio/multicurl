@@ -1,1 +1,3 @@
 coverage.out
+.goreleaser.yaml
+.golangci.yml
