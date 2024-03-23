@@ -3,10 +3,10 @@ module fortio.org/multicurl
 go 1.18
 
 require (
-	fortio.org/cli v1.5.1
-	fortio.org/log v1.12.0
+	fortio.org/cli v1.5.2
+	fortio.org/log v1.12.1
 	fortio.org/testscript v0.3.1
-	fortio.org/version v1.0.3
+	fortio.org/version v1.0.4
 )
 
 require (
