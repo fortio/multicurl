@@ -1,3 +1,6 @@
+.DS_Store
 coverage.out
 .goreleaser.yaml
 .golangci.yml
+dist/
+multicurl

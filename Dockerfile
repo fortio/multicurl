@@ -1,6 +1,5 @@
-FROM alpine as certs
-RUN apk update && apk add ca-certificates
+# We don't need to copy the CA bundle anymore thanks to
+# https://github.com/fortio/cli/releases/tag/v1.6.0
 FROM scratch
 COPY multicurl /usr/bin/multicurl
-COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 ENTRYPOINT ["/usr/bin/multicurl"]
