@@ -12,6 +12,7 @@ check: .goreleaser.yaml
 multicurl: # normal one with the bundle through fortio/cli
 	CGO_ENABLED=0 GOOS=linux go build -a .
 
+# Will fail because of missing bundle, on purpose, to confirm the negative build tag works.
 no-bundle-failing-test: build_no_tls_fallback test-local-image
 
 build_no_tls_fallback:
