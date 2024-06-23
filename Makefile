@@ -1,6 +1,6 @@
 all: lint check test-local-image
 
-test: check test-local-image
+test: test-local-image
 	go test -race ./...
 
 lint: .golangci.yml

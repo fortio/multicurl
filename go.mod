@@ -7,6 +7,7 @@ require (
 	fortio.org/log v1.12.2
 	fortio.org/testscript v0.3.1
 	fortio.org/version v1.0.4
+	golang.org/x/crypto/x509roots/fallback v0.0.0-20240604170348-d4e7c9cb6cb8
 )
 
 require (
