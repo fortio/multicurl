@@ -25,7 +25,7 @@ import (
 	"fortio.org/cli"
 	"fortio.org/log"
 	"fortio.org/multicurl/mc"
-	_ "golang.org/x/crypto/x509roots/fallback"
+	_ "golang.org/x/crypto/x509roots/fallback" // _this_ is the main package, needed for from scratch, see #146
 )
 
 // -- Support for multiple instances of -H flag on cmd line.
