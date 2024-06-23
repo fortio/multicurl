@@ -3,7 +3,7 @@ module fortio.org/multicurl
 go 1.18
 
 require (
-	fortio.org/cli v1.6.0-pre1
+	fortio.org/cli v1.6.0
 	fortio.org/log v1.12.2
 	fortio.org/testscript v0.3.1
 	fortio.org/version v1.0.4
