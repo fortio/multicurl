@@ -1,5 +1,5 @@
-fortio.org/cli v1.5.2 h1:MfEcHAhYyIkwG04/K1YJL946Y8/jyAjmF9WeR5ZG/5E=
-fortio.org/cli v1.5.2/go.mod h1:SdQufh5PLd6oX2EtvtzLFw++gw8zVoejD1WlwGXAvYw=
+fortio.org/cli v1.6.0-pre1 h1:rv3ImiuWdUaJoE4JD5wi8us0HKzyxKZD7KgCzOePOcc=
+fortio.org/cli v1.6.0-pre1/go.mod h1:QSCd+8OD3MrFKo2XwAHVJJu5gz/U0Jg1Vhse/4nHn3I=
 fortio.org/log v1.12.2 h1:JwLDFvEUKGfqA09fcf+mOn8kxsvwhjXV92xghxNnnwA=
 fortio.org/log v1.12.2/go.mod h1:1tMBG/Elr6YqjmJCWiejJp2FPvXg7/9UAN0Rfpkyt1o=
 fortio.org/struct2env v0.4.0 h1:k5alSOTf3YHiB3MuacjDHQ3YhVWvNZ95ZP/a6MqvyLo=
@@ -8,6 +8,8 @@ fortio.org/testscript v0.3.1 h1:MmRO64AsmzaU1KlYMzAbotJIMKRGxD1XXssJnBRiMGQ=
 fortio.org/testscript v0.3.1/go.mod h1:7OJ+U4avooRNqc7p/VHKJadYgj9fA6+N0SbGU8FVWGs=
 fortio.org/version v1.0.4 h1:FWUMpJ+hVTNc4RhvvOJzb0xesrlRmG/a+D6bjbQ4+5U=
 fortio.org/version v1.0.4/go.mod h1:2JQp9Ax+tm6QKiGuzR5nJY63kFeANcgrZ0osoQFDVm0=
+golang.org/x/crypto/x509roots/fallback v0.0.0-20240604170348-d4e7c9cb6cb8 h1:+kWDWI3Eb5cPIOr4cP+R2RLDwK3/dXppL+7XmSOh2LA=
+golang.org/x/crypto/x509roots/fallback v0.0.0-20240604170348-d4e7c9cb6cb8/go.mod h1:kNa9WdvYnzFwC79zRpLRMJbdEFlhyM5RPFBBZp/wWH8=
 golang.org/x/sys v0.8.0 h1:EBmGv8NaZBZTWvrbjNoL6HVt+IVy3QDQpJs7VRIw3tU=
 golang.org/x/sys v0.8.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/tools v0.8.0 h1:vSDcovVPld282ceKgDimkRSC8kpaH1dgyc9UMzlt84Y=
