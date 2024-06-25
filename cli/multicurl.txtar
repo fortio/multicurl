@@ -132,7 +132,7 @@ stdout 'Content-Length: 23'
 stdout '^body:$'
 stdout '^Just a test\\nof payload\\n$'
 
-# payload file errror
+# payload file error
 ! multicurl -4 -d @nosuchfile.txt https://debug.fortio.org
 stderr '\[F\] Unable to read payload from file "nosuchfile.txt": open nosuchfile.txt: no such file or directory'
 
