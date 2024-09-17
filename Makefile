@@ -1,7 +1,13 @@
 all: clean lint check test-local-image
 
+OS:=$(shell go env GOOS)
+
 test: test-local-image
+ifeq ($(OS),windows)
+	@echo "Skipping test on windows, issue with -- and testscript"
+else
 	go test -race ./...
+endif
 
 lint: .golangci.yml
 	golangci-lint run
@@ -20,8 +26,6 @@ build_no_tls_fallback:
 
 clean:
 	rm -f multicurl
-
-OS:=$(shell go env GOOS)
 
 # on a mac with docker... run `make OS=linux` to test local docker.
 test-local-image: multicurl
