@@ -21,15 +21,14 @@ build_no_tls_fallback:
 clean:
 	rm -f multicurl
 
-test-local-image: multicurl
-	@if command -v docker  >/dev/null 2>&1; then \
-	  echo "Have docker, testing local image"; \
-	  docker build -t fortio/multicurl:local -f Dockerfile .; \
-	  docker run --rm fortio/multicurl:local -4 https://debug.fortio.org/build-test; \
-	else \
-	  echo "docker not found, skipping local image test."; \
-	fi
+OS:=$(shell go env GOOS)
 
+# on a mac with docker... run `make OS=linux` to test local docker.
+test-local-image: multicurl
+ifeq ($(OS),linux)
+	docker build -t fortio/multicurl:local -f Dockerfile .
+	docker run --rm fortio/multicurl:local -4 https://debug.fortio.org/build-test
+endif
 
 .golangci.yml: Makefile
 	curl -fsS -o .golangci.yml https://raw.githubusercontent.com/fortio/workflows/main/golangci.yml
