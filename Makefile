@@ -22,8 +22,14 @@ clean:
 	rm -f multicurl
 
 test-local-image: multicurl
-	docker build -t fortio/multicurl:local -f Dockerfile .
-	docker run --rm fortio/multicurl:local -4 https://debug.fortio.org/build-test
+	@if command -v docker  >/dev/null 2>&1; then \
+	  echo "Have docker, testing local image"; \
+	  docker build -t fortio/multicurl:local -f Dockerfile .; \
+	  docker run --rm fortio/multicurl:local -4 https://debug.fortio.org/build-test; \
+	else \
+	  echo "docker not found, skipping local image test."; \
+	fi
+
 
 .golangci.yml: Makefile
 	curl -fsS -o .golangci.yml https://raw.githubusercontent.com/fortio/workflows/main/golangci.yml
