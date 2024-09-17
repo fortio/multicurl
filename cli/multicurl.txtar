@@ -193,13 +193,13 @@ stderr '\[F\] LoadX509KeyPair error for cert nosuchfile.crt / key nosuchfile.key
 
 # mtls test
 # on mac you need to use openssl from
-# brew install openssl@3
-exec curl -sS -o client.p12 https://badssl.com/certs/badssl.com-client.p12
-exec openssl version
-exec openssl pkcs12 -legacy -in client.p12 -out client.crt -clcerts -nokeys -passin pass:badssl.com
-exec openssl pkcs12 -legacy -in client.p12 -out client.key -nocerts -nodes -passin pass:badssl.com
-multicurl -4 -cert client.crt -key client.key https://client.badssl.com/
-stdout 'This site requires a .*client-authenticated.*TLS handshake'
+# brew install openssl@3 - so because CI macos doesn't have it, we tag this with linux for now.
+[linux] exec curl -sS -o client.p12 https://badssl.com/certs/badssl.com-client.p12
+[linux] exec openssl version
+[linux] exec openssl pkcs12 -legacy -in client.p12 -out client.crt -clcerts -nokeys -passin pass:badssl.com
+[linux] exec openssl pkcs12 -legacy -in client.p12 -out client.key -nocerts -nodes -passin pass:badssl.com
+[linux] multicurl -4 -cert client.crt -key client.key https://client.badssl.com/
+[linux] stdout 'This site requires a .*client-authenticated.*TLS handshake'
 
 # json, no certs, no expiry
 multicurl -4 -n 1 -json -o none http://debug.fortio.org
