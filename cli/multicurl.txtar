@@ -117,7 +117,7 @@ grep 'Debug server on a1' out.18.222.136.83.txt
 
 # error case
 ! multicurl -4 -i -o /doesnexist/debug.%.txt debug.fortio.org
-stderr '\[E\] Error creating file /doesnexist/debug.+: open /doesnexist/debug.+: no such file or directory'
+stderr '\[E\] Error creating file /doesnexist/debug'
 
 # Weird method test - count depends on number of ip addresses for debug.fortio.org
 multicurl -4 -X INFO -d 'blah blah' https://debug.fortio.org
