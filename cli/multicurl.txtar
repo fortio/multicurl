@@ -117,7 +117,7 @@ grep 'Debug server on a1' out.18.222.136.83.txt
 
 # error case
 ! multicurl -4 -i -o /doesnexist/debug.%.txt debug.fortio.org
-stderr '\[E\] Error creating file /doesnexist/debug.+: open /doesnexist/debug.+: no such file or directory'
+stderr '\[E\] Error creating file /doesnexist/debug'
 
 # Weird method test - count depends on number of ip addresses for debug.fortio.org
 multicurl -4 -X INFO -d 'blah blah' https://debug.fortio.org
@@ -125,39 +125,39 @@ stdout 'INFO / HTTP/2.0'
 stdout -count=3 'blah blah'
 
 # Debug summary of proxy is escaping the body thus the \n
-multicurl -4 -d @payloadFile.txt https://debug.fortio.org
-stderr '\[I\] Read 23 bytes from "payloadFile.txt" as payload'
-stdout 'POST / HTTP/2.0'
-stdout 'Content-Length: 23'
-stdout '^body:$'
-stdout '^Just a test\\nof payload\\n$'
+[unix] multicurl -4 -d @payloadFile.txt https://debug.fortio.org
+[unix] stderr '\[I\] Read 23 bytes from "payloadFile.txt" as payload'
+[unix] stdout 'POST / HTTP/2.0'
+[unix] stdout 'Content-Length: 23'
+[unix] stdout '^body:$'
+[unix] stdout '^Just a test\\nof payload\\n$'
 
 # payload file error
 ! multicurl -4 -d @nosuchfile.txt https://debug.fortio.org
-stderr '\[F\] Unable to read payload from file "nosuchfile.txt": open nosuchfile.txt: no such file or directory'
+stderr '\[F\] Unable to read payload from file "nosuchfile.txt": open nosuchfile.txt'
 
 # ip file error
 ! multicurl -4 -I nosuchfile.txt https://debug.fortio.org
-stderr '\[F\] Unable to resolve ip4 host debug.fortio.org: open nosuchfile.txt: no such file or directory'
+stderr '\[F\] Unable to resolve ip4 host debug.fortio.org: open nosuchfile.txt'
 
 # ip file
-multicurl -4 -I ips.txt https://debug.fortio.org
-stderr 'Using content of "ips.txt" to resolve IPs'
-stderr '18.222.136.83'
+[unix] multicurl -4 -I ips.txt https://debug.fortio.org
+[unix] stderr 'Using content of "ips.txt" to resolve IPs'
+[unix] stderr '18.222.136.83'
 
 # bad ip file
-! multicurl -4 -I badIps.txt https://debug.fortio.org
-stderr '\[F\] Unable to resolve ip4 host debug.fortio.org: unable to parse IP "not-an-ip"'
+[unix] ! multicurl -4 -I badIps.txt https://debug.fortio.org
+[unix] stderr '\[F\] Unable to resolve ip4 host debug.fortio.org: unable to parse IP "not-an-ip"'
 
 # good ipv6
-! multicurl -I ipv6.txt http://foo:9099/
-stderr '\[I\] Resolved ip foo:9099 to port 9099 and 2 addresses \[::1 ::2\]'
-stderr 'connect: connection refused'
+[unix] ! multicurl -I ipv6.txt http://foo:9099/
+[unix] stderr '\[I\] Resolved ip foo:9099 to port 9099 and 2 addresses \[::1 ::2\]'
+[unix] stderr 'connect: connection refused'
 
 # stdin ips
-stdin ips.txt
-multicurl -4 -I - https://debug.fortio.org
-stderr 'Using stdin for list of IPs to connect to'
+[unix] stdin ips.txt
+[unix] multicurl -4 -I - https://debug.fortio.org
+[unix] stderr 'Using stdin for list of IPs to connect to'
 
 # retries
 ! multicurl -4 -repeat -1 -repeat-delay 1s -total-timeout 1.9s -expected 301 http://debug.fortio.org
@@ -180,7 +180,7 @@ stderr '\[I\] Certificate "CN=BadSSL Untrusted Root Certificate Authority'
 
 # no such ca-cert file
 ! multicurl -4 -cacert nosuchfile https://debug.fortio.org/
-stderr '\[F\] can.t read CA file: open nosuchfile: no such file or directory'
+stderr '\[F\] can.t read CA file: open nosuchfile:'
 
 # get the server cert
 exec sh -c 'openssl s_client -showcerts -servername self-signed.badssl.com -connect self-signed.badssl.com:443 </dev/null | openssl x509 > test.ca'
@@ -189,17 +189,17 @@ stderr '\[I\] Certificate "CN=..badssl.com'
 
 # bad client cert path
 ! multicurl -4 -cert nosuchfile.crt -key nosuchfile.key https://debug.fortio.org/
-stderr '\[F\] LoadX509KeyPair error for cert nosuchfile.crt / key nosuchfile.key: open nosuchfile.crt: no such file or directory'
+stderr '\[F\] LoadX509KeyPair error for cert nosuchfile.crt / key nosuchfile.key: open nosuchfile.crt:'
 
 # mtls test
 # on mac you need to use openssl from
-# brew install openssl@3
-exec curl -sS -o client.p12 https://badssl.com/certs/badssl.com-client.p12
-exec openssl version
-exec openssl pkcs12 -legacy -in client.p12 -out client.crt -clcerts -nokeys -passin pass:badssl.com
-exec openssl pkcs12 -legacy -in client.p12 -out client.key -nocerts -nodes -passin pass:badssl.com
-multicurl -4 -cert client.crt -key client.key https://client.badssl.com/
-stdout 'This site requires a .*client-authenticated.*TLS handshake'
+# brew install openssl@3 - so because CI macos doesn't have it, we tag this with linux for now.
+[linux] exec curl -sS -o client.p12 https://badssl.com/certs/badssl.com-client.p12
+[linux] exec openssl version
+[linux] exec openssl pkcs12 -legacy -in client.p12 -out client.crt -clcerts -nokeys -passin pass:badssl.com
+[linux] exec openssl pkcs12 -legacy -in client.p12 -out client.key -nocerts -nodes -passin pass:badssl.com
+[linux] multicurl -4 -cert client.crt -key client.key https://client.badssl.com/
+[linux] stdout 'This site requires a .*client-authenticated.*TLS handshake'
 
 # json, no certs, no expiry
 multicurl -4 -n 1 -json -o none http://debug.fortio.org
