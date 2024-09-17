@@ -134,11 +134,11 @@ stdout -count=3 'blah blah'
 
 # payload file error
 ! multicurl -4 -d @nosuchfile.txt https://debug.fortio.org
-stderr '\[F\] Unable to read payload from file "nosuchfile.txt": open nosuchfile.txt: no such file or directory'
+stderr '\[F\] Unable to read payload from file "nosuchfile.txt": open nosuchfile.txt'
 
 # ip file error
 ! multicurl -4 -I nosuchfile.txt https://debug.fortio.org
-stderr '\[F\] Unable to resolve ip4 host debug.fortio.org: open nosuchfile.txt: no such file or directory'
+stderr '\[F\] Unable to resolve ip4 host debug.fortio.org: open nosuchfile.txt'
 
 # ip file
 [unix] multicurl -4 -I ips.txt https://debug.fortio.org
