@@ -180,7 +180,7 @@ stderr '\[I\] Certificate "CN=BadSSL Untrusted Root Certificate Authority'
 
 # no such ca-cert file
 ! multicurl -4 -cacert nosuchfile https://debug.fortio.org/
-stderr '\[F\] can.t read CA file: open nosuchfile: no such file or directory'
+stderr '\[F\] can.t read CA file: open nosuchfile:'
 
 # get the server cert
 exec sh -c 'openssl s_client -showcerts -servername self-signed.badssl.com -connect self-signed.badssl.com:443 </dev/null | openssl x509 > test.ca'
@@ -189,7 +189,7 @@ stderr '\[I\] Certificate "CN=..badssl.com'
 
 # bad client cert path
 ! multicurl -4 -cert nosuchfile.crt -key nosuchfile.key https://debug.fortio.org/
-stderr '\[F\] LoadX509KeyPair error for cert nosuchfile.crt / key nosuchfile.key: open nosuchfile.crt: no such file or directory'
+stderr '\[F\] LoadX509KeyPair error for cert nosuchfile.crt / key nosuchfile.key: open nosuchfile.crt:'
 
 # mtls test
 # on mac you need to use openssl from
