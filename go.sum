@@ -1,7 +1,7 @@
-fortio.org/cli v1.9.0 h1:cPgNHvrjxznmbmwuXSwPqQLKZ+RMW8i0iAOESLjt1aI=
-fortio.org/cli v1.9.0/go.mod h1:pk/JBE8LcXtNuo5Yj2bLsVbwPaHo8NWdbstSN0cpbFk=
-fortio.org/log v1.16.0 h1:GhU8/9NkYZmEIzvTN/DTMedDAStLJraWUUVUA2EbNDc=
-fortio.org/log v1.16.0/go.mod h1:t58Spg9njjymvRioh5F6qKGSupEsnMjXLGWIS1i3khE=
+fortio.org/cli v1.9.2 h1:17eJ8QZPjXHcLBpeCe0QMO/0fj5Bw0ZTxVgL7V9jOqc=
+fortio.org/cli v1.9.2/go.mod h1:7r55OoTV8NXcTvJT4boWk8s3I2LP6TMZh/0LLMJEYw0=
+fortio.org/log v1.17.1 h1:YQoGyZBnXTVIs77/nZw7BppwSOIamP3I092PGBenBZs=
+fortio.org/log v1.17.1/go.mod h1:t58Spg9njjymvRioh5F6qKGSupEsnMjXLGWIS1i3khE=
 fortio.org/struct2env v0.4.1 h1:rJludAMO5eBvpWplWEQNqoVDFZr4RWMQX7RUapgZyc0=
 fortio.org/struct2env v0.4.1/go.mod h1:lENUe70UwA1zDUCX+8AsO663QCFqYaprk5lnPhjD410=
 fortio.org/testscript v0.3.2 h1:ks5V+Y6H6nmeGqnVlZuLdiFwpqXemDkEnyGgCZa/ZNA=
