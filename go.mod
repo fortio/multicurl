@@ -1,6 +1,6 @@
 module fortio.org/multicurl
 
-go 1.20
+go 1.24.1
 
 require (
 	fortio.org/cli v1.9.2
