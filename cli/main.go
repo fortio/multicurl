@@ -73,6 +73,7 @@ func Main() int {
 	certFlag := flag.String("cert", "", "Path to a custom client certificate `file` for mTLS.")
 	keyFlag := flag.String("key", "", "Path to a custom client key `file` for mTLS.")
 	jsonFlag := flag.Bool("json", false, "JSON output of summary results")
+	noBarFlag := flag.Bool("nobar", false, "Disable display of progress bar (or spinner when no content-length)")
 
 	cli.ProgramName = "Fortio multicurl"
 	cli.ArgsHelp = "url"
@@ -107,6 +108,7 @@ func Main() int {
 	config.CAFile = *caCertFlag
 	config.Cert = *certFlag
 	config.Key = *keyFlag
+	config.NoProgressBar = *noBarFlag
 	if *data != "" {
 		if config.Method == "" {
 			config.Method = http.MethodPost
