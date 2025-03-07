@@ -37,6 +37,7 @@ import (
 
 	"fortio.org/cli"
 	"fortio.org/log"
+	"fortio.org/progressbar"
 	"fortio.org/version"
 )
 
@@ -87,6 +88,8 @@ type Config struct {
 	Cert string
 	// Client certificate key file path to provide to server for mutual TLS.
 	Key string
+	// Don't show progress bar (or spinner).
+	NoProgressBar bool
 	// extracted host
 	host string
 	// extracted port string
@@ -325,7 +328,7 @@ func oneRequest(i int, cfg *Config, result *ResultStats, addr net.IP,
 		d := net.Dialer{}
 		return d.DialContext(ctx, "tcp", aStr)
 	}
-	resp, err := cli.Do(req)
+	resp, err := cli.Do(req) //nolint:bodyclose // we do close it below
 	req.Body = io.NopCloser(bytes.NewReader(cfg.Payload))
 	if err != nil {
 		log.Errf("%d: Error fetching %s: %v", i, addr, err)
@@ -350,14 +353,18 @@ func oneRequest(i int, cfg *Config, result *ResultStats, addr net.IP,
 				result.ShortestCertExpiry = &cert.NotAfter
 			}
 			durDays := Days(cert.NotAfter.Sub(cfg.now))
-			log.Infof("Certificate %q expires in %.0f days\n", cert.Subject, durDays)
+			log.Infof("Certificate %q expires in %.0f days", cert.Subject, durDays)
 		}
 	}
 	if cfg.IncludeHeaders {
 		DumpResponseDetails(out, resp)
 	}
-	data, err := io.ReadAll(resp.Body)
-	_ = resp.Body.Close()
+	reader := resp.Body
+	if !cfg.NoProgressBar {
+		reader = progressbar.NewAutoReader(resp.Body, resp.ContentLength)
+	}
+	data, err := io.ReadAll(reader)
+	_ = reader.Close() // will close resp.Body too when using the progressbar wrapper.
 	if err != nil {
 		log.Errf("%d: Error reading body from %s: %v", i, addr, err)
 		numErrors++

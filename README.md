@@ -31,6 +31,7 @@ multicurl https://debug.fortio.org/test
 Use `-4` for ipv4 only, `-6` for ipv6 only, otherwise it'll try all of them.
 
 <!-- generate using
+LOGGER_CONSOLE_COLOR=false LOGGER_IGNORE_CLI_MODE=true \
 go run . help | expand | fold -s -w 92 | sed -e "s/ $//" -e "s/</\&lt;/"
 -->
 ```
@@ -61,10 +62,16 @@ set any different code is an error
         JSON output of summary results
   -key file
         Path to a custom client key file for mTLS.
+  -logger-force-color
+        Force color output even if stderr isn't a terminal
+  -logger-no-color
+        Prevent colorized output even if stderr is a terminal
   -loglevel level
         log level, one of [Debug Verbose Info Warning Error Critical Fatal] (default Info)
   -n int
         Max number of IPs to use/try (0 means all the ones found)
+  -nobar
+        Disable display of progress bar (or spinner when no content-length)
   -o file name pattern
         Output file name pattern, e.g "out-%.html" where % will be replaced by the ip,
 default is stdout, use "none" for no output (in combination with -json for instance)
