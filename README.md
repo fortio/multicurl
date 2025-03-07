@@ -285,3 +285,6 @@ Note the handy `ShortestCertExpiry` entry.
 
 
 ps: this started as https://pkg.go.dev/github.com/fortio/multicurl and now is available under https://pkg.go.dev/fortio.org/multicurl
+
+
+Note: it seems on (my) macos and with go1.24 only, that the resolution of http url gets cached, works fine with any other go version or OS combination - or using `-tags netgo` - the binary we build use 1.23 so don't have that issue either way.
