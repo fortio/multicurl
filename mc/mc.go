@@ -326,7 +326,11 @@ func oneRequest(i int, cfg *Config, result *ResultStats, addr net.IP,
 	tr.DialContext = func(ctx context.Context, network, oAddr string) (net.Conn, error) {
 		log.LogVf("%d: DialContext %s %s -> %s", i, network, oAddr, aStr)
 		d := net.Dialer{}
-		return d.DialContext(ctx, "tcp", aStr)
+		c, err := d.DialContext(ctx, network, aStr)
+		if err != nil {
+			log.LogVf("%d: DialContext %v", i, c.LocalAddr())
+		}
+		return c, err
 	}
 	resp, err := cli.Do(req) //nolint:bodyclose // we do close it below
 	req.Body = io.NopCloser(bytes.NewReader(cfg.Payload))
