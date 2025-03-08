@@ -327,7 +327,7 @@ func oneRequest(i int, cfg *Config, result *ResultStats, addr net.IP,
 		log.LogVf("%d: DialContext %s %s -> %s", i, network, oAddr, aStr)
 		d := net.Dialer{}
 		c, err := d.DialContext(ctx, network, aStr)
-		if err != nil {
+		if c != nil {
 			log.LogVf("%d: DialContext %v", i, c.LocalAddr())
 		}
 		return c, err
