@@ -287,4 +287,4 @@ Note the handy `ShortestCertExpiry` entry.
 ps: this started as https://pkg.go.dev/github.com/fortio/multicurl and now is available under https://pkg.go.dev/fortio.org/multicurl
 
 
-Note: it seems on macos with ipv6 and with go1.24 only, that the resolution of http url gets cached and made to the wrong same ipv6 instead of the 3 ipv4 of http://debug.fortio.org, it works fine with any other go version or OS combination - or using `-tags netgo` - the binary we build use 1.23 so don't have that issue either way.
+Note: If you have iCloud Private Relay on and IpV6 and build with go1.24+, that the resolution of http URLs gets cached and made to the wrong same ipv6 instead of the 3 ipv4 of http://debug.fortio.org for instance, it works fine with any other go version or OS combination - or using `-tags netgo` - the binary we build use 1.23 so don't have that issue either way.
