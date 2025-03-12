@@ -365,9 +365,9 @@ func oneRequest(i int, cfg *Config, result *ResultStats, addr net.IP,
 	}
 	reader := resp.Body
 	if !cfg.NoProgressBar {
-		pb := progressbar.NewAutoReader(resp.Body, resp.ContentLength)
-		pb.Prefix = fmt.Sprintf("%2d ", i)
-		reader = pb
+		bar := progressbar.NewBar()
+		bar.Prefix = fmt.Sprintf("%2d ", i)
+		reader = progressbar.NewAutoReader(bar, resp.Body, resp.ContentLength)
 	}
 	data, err := io.ReadAll(reader)
 	_ = reader.Close() // will close resp.Body too when using the progressbar wrapper.
