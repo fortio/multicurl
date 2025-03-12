@@ -367,6 +367,7 @@ func oneRequest(i int, cfg *Config, result *ResultStats, addr net.IP,
 	if !cfg.NoProgressBar {
 		bar := progressbar.NewBar()
 		bar.Prefix = fmt.Sprintf("%2d ", i)
+		bar.NoAnsi = !log.Color
 		reader = progressbar.NewAutoReader(bar, resp.Body, resp.ContentLength)
 	}
 	data, err := io.ReadAll(reader)
