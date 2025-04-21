@@ -5,7 +5,7 @@ go 1.20
 require (
 	fortio.org/cli v1.10.0
 	fortio.org/log v1.17.2
-	fortio.org/progressbar v1.0.1
+	fortio.org/progressbar v1.1.0
 	fortio.org/testscript v0.3.2
 	fortio.org/version v1.0.4
 )
