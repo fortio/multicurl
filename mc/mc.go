@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Multicurl package is a library for the multicurl tool to fetch a url from all its IPs.
+// Package mc is a library for the multicurl tool to fetch a url from all its IPs.
 // Some of this code is based on the fortio code.
 // https://github.com/fortio/fortio/blob/master/fnet/network.go
 package mc
@@ -156,7 +156,7 @@ func MultiCurl(ctx context.Context, cfg *Config) (int, ResultStats) { //nolint:f
 		cfg.port = url.Scheme // ie http / https which turns into 80 / 443 later
 		log.LogVf("No port specified, using %s", cfg.port)
 	}
-	cfg.portNum, err = net.LookupPort("tcp", cfg.port)
+	cfg.portNum, err = net.DefaultResolver.LookupPort(ctx, "tcp", cfg.port)
 	if err != nil {
 		return log.FErrf("Unable to resolve port %q: %v", cfg.port, err), result
 	}
