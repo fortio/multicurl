@@ -80,7 +80,7 @@ func Main() int {
 	cli.MinArgs = 1
 	cli.Main()
 	resolveType := "ip"
-	if !(*ipv4 && *ipv6) {
+	if !*ipv4 || !*ipv6 {
 		if *ipv4 {
 			resolveType = "ip4"
 		}
