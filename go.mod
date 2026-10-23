@@ -1,11 +1,11 @@
 module fortio.org/multicurl
 
-go 1.20
+go 1.22
 
 require (
 	fortio.org/cli v1.12.3
 	fortio.org/log v1.18.3
-	fortio.org/progressbar v1.3.0
+	fortio.org/progressbar v1.5.0
 	fortio.org/testscript v0.3.2
 	fortio.org/version v1.0.4
 )
